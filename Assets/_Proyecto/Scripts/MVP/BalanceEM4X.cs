@@ -310,11 +310,43 @@ namespace PrototipoMision
         public static void Confirmar(PreparacionExpedicion p) { Preparacion = p.Copia(); Confirmada = true; }
         public static void Reabrir() { Confirmada = false; }
 
+        /// <summary>Guarda las selecciones en curso SIN confirmarlas (el hangar no pierde lo elegido al salir y volver).</summary>
+        public static void GuardarBorrador(PreparacionExpedicion p)
+        {
+            if (Confirmada) return;          // cerrada: solo se cambia tras reabrir explícitamente
+            Preparacion = p.Copia();
+        }
+
+        /// <summary>La expedición salió del hangar terrestre (para ofrecer «volver al hangar» al terminar).</summary>
+        public static bool DesdeHangar { get; private set; }
+        static bool embarquePendiente;
+
+        /// <summary>Embarque confirmado en el hangar: ExpedicionMVP empezará directamente en la transición, sin otra preparación.</summary>
+        public static void MarcarEmbarque()
+        {
+            if (!Confirmada) return;
+            DesdeHangar = true;
+            embarquePendiente = true;
+        }
+
+        /// <summary>El embarque no llegó a abrir ExpedicionMVP: se anula para no saltarse la preparación más tarde.</summary>
+        public static void CancelarEmbarque() { embarquePendiente = false; }
+
+        /// <summary>Lo llama ExpedicionMVP al arrancar: true una sola vez por embarque.</summary>
+        public static bool ConsumirEmbarque()
+        {
+            bool e = embarquePendiente && Confirmada;
+            embarquePendiente = false;
+            return e;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reiniciar()
         {
             Preparacion = new PreparacionExpedicion();
             Confirmada = false;
+            DesdeHangar = false;
+            embarquePendiente = false;
         }
     }
 

@@ -854,3 +854,71 @@ El presupuesto es previsto mientras se planifica; se calcula entero cada vez. Co
 - Balance: es provisional; las estimaciones de combustible salen de un modelo en Python con guiado idealizado, no de partidas reales.
 - Transporte y construcción del nodo de 10 m: sin resolver.
 - Sin EVA, atraque físico, vuelos de carga, red ni varios jugadores.
+
+---
+
+## Arte de la EM-4X: sustitución visual y guía de modelado (13-11-2026)
+
+**Estado: ESCRITO y revisado por lectura. No compilado ni ejecutado por quien lo escribió.**
+
+Copia previa: `CopiasSeguridad/Copia_antes_sustitucion_visual_2026-11-13.zip` (JuegoMVP, menú 16, documentos y escena ExpedicionMVP).
+
+- **Guía para modeladores:** `Documentacion/GUIA_MODELADO_EM4X.md`, con las láminas `em4x_vistas_actuales.png` y `em4x_modulo_ciencia.png`. Las medidas se generan leyendo `NaveModular.cs` y `DatosCirculacion.cs`. Hay copia compartible en Claude Docs: «EM-4X · guía de modelado».
+- **Punto de sustitución:**
+  - `Scripts/ArteEM4X/RecursosVisualesEM4X.cs` contiene los datos: la tabla de modelos.
+  - `Scripts/ArteEM4X/SustitucionVisualEM4X.cs` es solo visual. Coloca cada modelo sobre la pieza provisional; esta deja de dibujarse (`forceRenderingOff`) pero conserva su colisión.
+  - Se aplica DESPUÉS de colisiones, puertas y detalle. Quita las colisiones o la física que traiga el modelo.
+  - Si falta un modelo, se ve lo provisional.
+- **Prueba de importación:** `Scripts/ArteEM4X/PruebaModelos.cs`, en la escena ModeloPrueba. Reutiliza CirculacionPrueba sin cambiarla.
+  - Teclas: F2 informe · F3 modelos/provisional · F4 ir a Ciencia · F12 capturas en `Capturas/`.
+- **Menús** (`Editor/HerramientasArteEM4X.cs`):
+  - **19** crea las carpetas `Assets/_Arte/…` y la tabla `Data/RecursosVisualesEM4X.asset`, y la asigna a la escena abierta.
+  - **20** crea la escena ModeloPrueba.
+  - **21** comprueba lo entregado y escribe `Informes/ComprobacionArte_<fecha>.txt`.
+  - Ninguno sustituye escenas ni archivos existentes.
+- **Cambios mínimos:**
+  - `JuegoMVP` tiene un campo nuevo `recursosVisuales` y aplica la sustitución tras construir el detalle.
+  - `DetalleInterior` expone su raíz.
+  - El menú 16 asigna la tabla si existe.
+  - Lógica, física, balance y misiones sin cambios.
+- **Riesgo de sobrescritura:** la EM-4X se construye al pulsar Play a partir de los datos y los modelos viven en `_Arte`, así que recrear una escena no los toca. Los menús antiguos 8 y «Muestra visual» siguen siendo peligrosos para la escena Nave: no usarlos.
+- **Limitación:** el modo «corte» de la cámara de inspección no recorta los modelos importados, solo la geometría provisional.
+- **Hangar terrestre:** todavía no implementado. Se hará después de corregir los fallos que encontréis en el MVP, en una escena nueva e independiente; HangarPrueba no se toca.
+
+---
+
+## Hangar terrestre jugable (13-11-2026) — escena HangarExpedicion
+
+**Estado: ESCRITO y revisado por lectura. No compilado ni ejecutado por quien lo escribió.** Las pruebas del MVP y de modelos siguen pendientes.
+
+Copia previa: `CopiasSeguridad/Copia_antes_hangar_terrestre_2026-11-13.zip` (BalanceEM4X, JuegoMVP, HudMVP y documentos).
+
+**Cómo abrirlo:** menú **Prototipo → 22. Hangar terrestre: crear o abrir la escena HangarExpedicion**. La crea si no existe y si ya existe solo la abre. Después, Play.
+
+**Recorrido:** entrada → 1 Misión → 2 Configuración orbital (con el holograma de la EM-4X) → 3 Carga (manifiesto, estanterías y zona de envío) → 4 Revisión final → 5 Embarque. Desde ahí se pasa a ExpedicionMVP, que empieza en los mensajes de transición y lleva al interior de la EM-4X con esa configuración. Al terminar la misión hay un botón «Volver al hangar terrestre».
+
+**Datos: no hay una segunda configuración.**
+- Las elecciones son la misma `PreparacionExpedicion` de `ExpedicionActual` que usa el MVP. Presupuesto, tarifas, problemas y avisos salen de `BalanceEM4X.Calcular`.
+- La carga (`CargaHangar`) se deriva de esa preparación: combustible, suministros, kits, sonda y componentes de sustitución.
+  - Preparar un lote solo lo marca como listo con la selección actual. No crea recursos ni se cobra.
+  - Si cambia la selección de un lote, solo ese lote vuelve a quedar por preparar.
+- **Cerrar la preparación:** con la preparación cerrada no se puede cambiar nada. Reabrirla conserva las selecciones.
+- **Embarque:** exige misión elegida, configuración válida, presupuesto suficiente, carga preparada y preparación cerrada.
+- **Acceso directo al MVP:** sin cambios. Si abres ExpedicionMVP directamente, sale la portada y la preparación de siempre.
+
+**Controles:** W/A/S/D caminar · ratón mirar · Mayús correr · E usar · Esc libera el cursor (o cierra la terminal). Siempre visibles en pantalla.
+
+**Archivos:**
+- Nuevos:
+  - `Scripts/HangarTerrestre/HangarTerrestre.cs`, `CaminanteHangar.cs`, `CargaHangar.cs` y `HudHangarTerrestre.cs`;
+  - `Scripts/MVP/CargadorEscenas.cs`;
+  - `Editor/CrearEscenaHangarExpedicion.cs`.
+- Modificados:
+  - `Scripts/MVP/BalanceEM4X.cs`: solo `ExpedicionActual`, con borrador, embarque desde el hangar y origen.
+  - `Scripts/MVP/JuegoMVP.cs`: entrada desde el hangar y vuelta al hangar.
+  - `Scripts/MVP/HudMVP.cs`: botón de volver al hangar.
+- Sin cambios: EM-4X, vuelo, gravedad, balance, HangarPrueba, escena de entrada, lista del build y paquetes.
+
+**Cambio de escena sin tocar la lista del build:** en el editor se carga por ruta. En un ejecutable hará falta añadir HangarExpedicion y ExpedicionMVP a la lista; si faltan, el juego lo dice en pantalla en lugar de fallar.
+
+**No incluido en esta versión:** lanzadera detallada, despegue, grúas, cajas con física, vuelos de carga y modelos del equipo de arte.

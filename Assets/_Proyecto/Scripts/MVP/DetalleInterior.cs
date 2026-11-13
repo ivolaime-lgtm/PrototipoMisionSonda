@@ -19,6 +19,8 @@ namespace PrototipoMision
         readonly List<Transform> kits = new List<Transform>();
         Material matAlarma, matAlarmaApagada;
         readonly List<MeshRenderer> rotulos = new List<MeshRenderer>();
+        /// <summary>Raíz de las piezas provisionales (para la sustitución visual de la utilería).</summary>
+        public Transform Raiz { get; private set; }
 
         static Material Mat(Color c)
         {
@@ -68,6 +70,7 @@ namespace PrototipoMision
             juego = j;
             fuente = f;
             Transform raiz = new GameObject("Detalle interior (provisional, sin colisiones)").transform;
+            Raiz = raiz;
             matAlarma = Mat(new Color(1f, 0.15f, 0.1f));
             matAlarmaApagada = Mat(new Color(0.25f, 0.08f, 0.08f));
             Material matKit = Mat(new Color(1f, 0.55f, 0.1f));

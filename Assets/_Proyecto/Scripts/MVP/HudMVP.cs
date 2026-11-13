@@ -709,6 +709,7 @@ namespace PrototipoMision
             foreach (string linea in s.Registro) GUILayout.Label(linea, sPequeno);
             GUILayout.EndScrollView();
             GUILayout.BeginHorizontal();
+            if (ExpedicionActual.DesdeHangar && GUILayout.Button("VOLVER AL HANGAR TERRESTRE", sBoton, GUILayout.Height(46f))) juego.VolverAlHangar();
             if (GUILayout.Button("NUEVA EXPEDICIÓN (volver a la preparación)", sBoton, GUILayout.Height(46f))) juego.NuevaExpedicion();
             if (GUILayout.Button("Salir", sBoton, GUILayout.Height(46f), GUILayout.Width(160f))) Application.Quit();
             GUILayout.EndHorizontal();

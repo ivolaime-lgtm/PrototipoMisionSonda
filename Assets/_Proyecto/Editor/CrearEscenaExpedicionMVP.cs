@@ -85,6 +85,8 @@ public static class CrearEscenaExpedicionMVP
         so.FindProperty("materialConLuz").objectReferenceValue = conLuz;
         so.FindProperty("materialSinLuz").objectReferenceValue = sinLuz;
         so.FindProperty("materialTransparente").objectReferenceValue = transparente;
+        // Tabla de modelos (opcional): si existe se asigna; si no, todo provisional (menú 19 la crea).
+        so.FindProperty("recursosVisuales").objectReferenceValue = AssetDatabase.LoadAssetAtPath<RecursosVisualesEM4X>("Assets/_Proyecto/Data/RecursosVisualesEM4X.asset");
         so.ApplyModifiedPropertiesWithoutUndo();
 
         if (EditorSceneManager.SaveScene(escena, Ruta))

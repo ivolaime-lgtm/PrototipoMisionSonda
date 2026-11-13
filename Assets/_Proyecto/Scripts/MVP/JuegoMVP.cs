@@ -33,6 +33,8 @@ namespace PrototipoMision
         [SerializeField] CatalogoMision catalogoMision;
         [Tooltip("Solo para que el ejecutable incluya estos sombreadores (la escena se construye al iniciar).")]
         [SerializeField] Material materialConLuz, materialSinLuz, materialTransparente;
+        [Tooltip("Tabla de modelos que sustituyen piezas provisionales (solo visual). Vacía = todo provisional.")]
+        [SerializeField] RecursosVisualesEM4X recursosVisuales;
 
         public enum Fase { Cargando, Preparacion, Transicion, Mision, Resultados }
         public enum Modo { Interior, Inspeccion, Pilotaje, Consola }
@@ -51,6 +53,7 @@ namespace PrototipoMision
         public PuntoInteraccion PuntoCercano { get; private set; }
         public VistaVueloMVP VistaVuelo { get; private set; }
         public DetalleInterior Detalle { get; private set; }
+        public SustitucionVisualEM4X Sustitucion { get; private set; }
         public PrediccionTrayectoria Prediccion { get; private set; }
         public int Aceleracion { get; private set; } = 1;
         public bool MapaVisible { get; private set; } = true;
@@ -101,6 +104,9 @@ namespace PrototipoMision
             CrearPuntos(d);
             Detalle = gameObject.AddComponent<DetalleInterior>();
             Detalle.Construir(this, d, fuente);
+            // Modelos del equipo de arte: solo visual, DESPUÉS de las colisiones, puertas y detalle (ver SustitucionVisualEM4X).
+            Sustitucion = new GameObject("Sustitución visual (modelos)").AddComponent<SustitucionVisualEM4X>();
+            Sustitucion.Aplicar(Expedicion.Vista.Nave, d, Uniones, Detalle.Raiz, recursosVisuales);
             VistaVuelo = gameObject.AddComponent<VistaVueloMVP>();
             VistaVuelo.Construir(this, d);
             CrearSonidos();
@@ -111,7 +117,10 @@ namespace PrototipoMision
             Expedicion.Vista.MostrarEtiquetas(false);
             Expedicion.Vista.MostrarEsquema(false);
 
-            EntrarPreparacion();
+            // Si se viene del hangar terrestre con la preparación confirmada, se empieza en la transición con ESA
+            // configuración (sin portada ni otra preparación). Si no, el acceso directo de siempre.
+            if (ExpedicionActual.ConsumirEmbarque()) EntrarDesdeHangar();
+            else EntrarPreparacion();
         }
 
         void CrearPuntos(DefinicionNaveModular d)
@@ -191,9 +200,30 @@ namespace PrototipoMision
 
         // ------------------------------------------------------------------ Fases
 
+        /// <summary>Llegada desde el hangar: misma preparación confirmada, directamente a los mensajes de transición.</summary>
+        void EntrarDesdeHangar()
+        {
+            PrepararFondo();
+            FaseActual = Fase.Transicion;
+            Tarjeta = 0;
+            CambiarModo(Modo.Pilotaje);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
         void EntrarPreparacion()
         {
             ExpedicionActual.Reabrir();
+            PrepararFondo();
+            FaseActual = Fase.Preparacion;
+            CambiarModo(Modo.Pilotaje);        // cámara de vuelo como fondo: la EM-4X en órbita
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        /// <summary>Borrador, presupuesto, nave de fondo en su órbita, puertas y personaje en su sitio.</summary>
+        void PrepararFondo()
+        {
             Borrador = ExpedicionActual.Preparacion.Copia();
             Recalcular();
             // Solo como fondo de la preparación: la EM-4X en su órbita junto a la base (no es la misión).
@@ -205,10 +235,13 @@ namespace PrototipoMision
             foreach (PuertasUnion u in Uniones) if (u != null) u.FijarParaComprobacion(u.Datos.abiertaAlInicio);
             ModuloNave nc = Expedicion.Definicion.Modulo("NC");
             Personaje.Recolocar(nc.AMundo(SalidaLocal), Quaternion.LookRotation(nc.Adelante, nc.Arriba));
-            FaseActual = Fase.Preparacion;
-            CambiarModo(Modo.Pilotaje);        // cámara de vuelo como fondo: la EM-4X en órbita
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+        }
+
+        /// <summary>Vuelve a la escena del hangar terrestre (solo si la expedición salió de allí).</summary>
+        public void VolverAlHangar()
+        {
+            string error;
+            if (!CargadorEscenas.Cargar(CargadorEscenas.Hangar, out error)) Respuesta(false, error);
         }
 
         /// <summary>Recalcula el presupuesto PREVISTO del borrador (cambiar opciones no descuenta nada).</summary>

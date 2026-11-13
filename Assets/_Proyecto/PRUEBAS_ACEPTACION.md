@@ -579,3 +579,41 @@ En `CirculacionPrueba`, Play:
 - [ ] El menú 18 genera el ejecutable.
 - [ ] En el ejecutable se ven materiales, rótulos y pantallas (sin objetos rosa).
 - [ ] Las tres misiones se completan en el ejecutable.
+
+---
+
+## AC. Sustitución visual e importación de una pieza — 13-11-2026
+
+**Estado: NINGUNA SUPERADA. Escrito y leído; no compilado ni ejecutado por quien lo escribió.**
+
+- [ ] AC1. El proyecto compila con los archivos nuevos.
+- [ ] AC2. El menú 19 crea `Assets/_Arte/…` y `Data/RecursosVisualesEM4X.asset`; el menú 20 crea ModeloPrueba.
+- [ ] AC3. ModeloPrueba **sin modelos**: el informe dice «sin modelo» en las 4 entradas. Las tres revisiones de circulación dan 0 problemas y se juega igual que CirculacionPrueba.
+- [ ] AC4. **Con una pieza de prueba** (puede ser un cubo de 1 m exportado desde Blender como `EM4X_CI_ConsolaCiencia_v01`, asignado con «Escalar a la caja» y después «Tal cual»):
+  - aparece en el sitio de la consola;
+  - el informe avisa del tamaño cuando no coincide;
+  - F3 alterna el modelo y el bloque;
+  - se sigue chocando con la caja provisional.
+- [ ] AC5. Con un modelo que trae colisiones, el informe dice que se han quitado y no aparecen bloqueos nuevos.
+- [ ] AC6. Con un material Standard (pipeline antiguo), el informe lo marca como no URP.
+- [ ] AC7. F12 guarda 4 imágenes en `Capturas/` y la planta se corresponde con `em4x_vistas_actuales.png`.
+- [ ] AC8. ExpedicionMVP con la tabla asignada: las misiones, puertas, reparación y Pilotaje funcionan igual que sin tabla.
+
+---
+
+## AD. Hangar terrestre (escena HangarExpedicion) — 13-11-2026
+
+**Estado: NINGUNA SUPERADA. Escrito y leído; no compilado ni ejecutado por quien lo escribió.**
+
+- [ ] AD1. Compila. El menú 22 crea la escena; si se repite, solo la abre.
+- [ ] AD2. Play: se camina por el suelo con WASD y ratón, sin atravesar paredes, terminales ni estanterías. Los controles se ven en pantalla.
+- [ ] AD3. Al acercarse a cada estación aparece su nombre y «E: usar» o «E: preparar».
+- [ ] AD4. Terminal abierta: cursor libre, personaje quieto. Esc o «Cerrar» devuelven el control. Esc fuera de una terminal libera el cursor; Esc o clic lo recuperan.
+- [ ] AD5. Misión: se ven las tres con objetivo y requisitos; al seleccionar una queda marcada y aparece arriba.
+- [ ] AD6. Configuración: cambiar motor, tanque, instrumento, relevo o combustible actualiza los valores, el presupuesto y el holograma (módulos en amarillo).
+- [ ] AD7. Carga: subir y bajar suministros o kits cambia las cajas de la estantería. E en la estantería las lleva a la zona de envío. Al cambiar una cantidad, solo ese lote vuelve a la estantería. No se pueden pasar los máximos.
+- [ ] AD8. Revisión: la lista coincide con lo que falta. Con un problema (por ejemplo, la misión 3 sin sonda) no se puede cerrar. Cerrar bloquea los cambios y reabrir conserva las selecciones.
+- [ ] AD9. Embarque: con algo pendiente explica qué falta; con todo listo, «Confirmar la salida y embarcar» abre ExpedicionMVP directamente en los mensajes de transición, sin portada ni otra preparación.
+- [ ] AD10. En la misión, la configuración (motor, tanque, instrumento, combustible, kits, suministros, sonda) es exactamente la del hangar, y el presupuesto de los resultados coincide.
+- [ ] AD11. Al terminar, «Volver al hangar terrestre» lleva al hangar con las selecciones conservadas y la carga por preparar.
+- [ ] AD12. Abrir ExpedicionMVP directamente sigue mostrando la portada y su preparación de siempre.

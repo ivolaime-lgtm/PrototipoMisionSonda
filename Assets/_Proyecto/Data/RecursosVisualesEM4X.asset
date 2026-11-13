@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01e585c74899f344891d3dbded3bc44b, type: 3}
+  m_Name: RecursosVisualesEM4X
+  m_EditorClassIdentifier: Assembly-CSharp::PrototipoMision.RecursosVisualesEM4X
+  usarModelos: 1
+  entradas:
+  - activa: 1
+    tipo: 0
+    modulo: CI
+    nombre: 
+    prefab: {fileID: 0}
+    ajuste: 0
+    notas: "PRUEBA 1: casco del m\xF3dulo de Ciencia (EM4X_CI_Casco)."
+  - activa: 1
+    tipo: 1
+    modulo: CI
+    nombre: Consola de Ciencia
+    prefab: {fileID: 0}
+    ajuste: 0
+    notas: "PRUEBA 1: caja X 0,7 \xD7 Y 1,2 \xD7 Z 2,0 m en ejes del m\xF3dulo; la
+      cara \xFAtil mira a \u2212X (hacia el pasillo)."
+  - activa: 1
+    tipo: 2
+    modulo: CI
+    nombre: ais_ciencia
+    prefab: {fileID: 0}
+    ajuste: 1
+    notas: "PRUEBA 1: hoja telesc\xF3pica de Ciencia. Modelo: X = deslizamiento,
+      Y = alto, Z = grosor (+Z hacia el interior)."
+  - activa: 1
+    tipo: 3
+    modulo: CI
+    nombre: ais_ciencia
+    prefab: {fileID: 0}
+    ajuste: 0
+    notas: "PRUEBA 1: panel 0,25 \xD7 0,25 \xD7 0,05 m; +Z = cara hacia el jugador."
