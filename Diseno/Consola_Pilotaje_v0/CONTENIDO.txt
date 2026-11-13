@@ -1,0 +1,22 @@
+CONTENIDO DE Consola_Pilotaje_v0 (modelo base v0, 8 de noviembre de 2026)
+
+README.md                            9458 bytes  Medidas, piezas, pivotes y anclajes de la consola (fuente de las medidas locales)
+INSTRUCCIONES_PRUEBA.md              4495 bytes  Pasos para Blender, la exportación FBX provisional y la prueba en una copia de Unity
+crear_consola_pilotaje_v0.py        27252 bytes  Script de Blender: crea piezas con pivotes, anclajes ANC_ (vacíos) y materiales provisionales
+consola_pilotaje_v0.obj             23929 bytes  Mallas para ver y medir. NO contiene pivotes ni anclajes
+consola_pilotaje_v0.mtl               558 bytes  Materiales provisionales del OBJ
+anclajes.json                        3516 bytes  Coordenadas (Unity) de anclajes y pivotes
+planta_y_perfil.png                130402 bytes  Referencia: planta de la cabina y perfil con la línea de visión
+vista_piloto_sentado.png           100065 bytes  Referencia: dibujo de la vista del piloto (no es captura de Unity)
+vista_general.png                  162517 bytes  Referencia: vista general de los bloques (no es captura de Unity)
+fuente/generar_consola.py           17276 bytes  Opcional: regenera OBJ, script y anclajes (Python con numpy y scipy)
+fuente/plantilla_blender.py          4141 bytes  Opcional: plantilla del script de Blender
+fuente/referencias.py                9555 bytes  Opcional: regenera las imágenes (ejecutar después de generar_consola.py; necesita matplotlib)
+
+Archivos que faltan: ninguno.
+
+No incluidos a propósito (los genera el compañero en la prueba):
+  - consola_pilotaje_v0_base.blend y consola_pilotaje_v0_trabajo.blend (al ejecutar el script en Blender)
+  - consola_pilotaje_v0_prueba.fbx (exportación provisional, sin validar)
+
+Empezar por INSTRUCCIONES_PRUEBA.md.

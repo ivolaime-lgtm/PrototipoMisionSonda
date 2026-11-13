@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80a22f93898d3ae43807e7c3275257ad, type: 3}
+  m_Name: Ficha_3
+  m_EditorClassIdentifier: Assembly-CSharp::PrototipoMision.FichaCientifica
+  titulo: Chimenea mineral
+  texto: "Una estructura alta formada por minerales acumulados alrededor de un respiradero.
+    Escenario ficticio: un escaneo lento consume m\xE1s energ\xEDa, as\xED que conviene
+    vigilar la bater\xEDa antes de empezar."
+  imagen: {fileID: 0}
+  esDemostracion: 1
+  fuente: 

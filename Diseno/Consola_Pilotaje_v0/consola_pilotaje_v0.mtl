@@ -1,0 +1,39 @@
+newmtl M_PinturaBlanca
+Kd 0.902 0.894 0.875
+
+newmtl M_Grafito
+Kd 0.227 0.247 0.275
+
+newmtl M_MetalDesnudo
+Kd 0.620 0.640 0.660
+
+newmtl M_AcentoNaranja
+Kd 0.949 0.549 0.157
+
+newmtl M_Pantalla
+Kd 0.020 0.050 0.060
+Ke 0.361 0.784 0.878
+
+newmtl M_TiraLuz
+Kd 0.100 0.100 0.100
+Ke 0.361 0.784 0.878
+
+newmtl M_Indicador
+Kd 0.200 0.200 0.200
+Ke 0.420 0.816 0.541
+
+newmtl M_Alerta
+Kd 0.898 0.282 0.302
+
+newmtl M_TelaAsiento
+Kd 0.180 0.210 0.260
+
+newmtl M_Colision
+Kd 0.900 0.200 0.900
+
+newmtl M_Ayuda
+Kd 1.000 0.900 0.000
+
+newmtl M_AyudaDerecha
+Kd 0.000 0.600 1.000
+

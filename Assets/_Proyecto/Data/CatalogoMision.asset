@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f73671d3de3694a418f3438ee87f5006, type: 3}
+  m_Name: CatalogoMision
+  m_EditorClassIdentifier: Assembly-CSharp::PrototipoMision.CatalogoMision
+  escenario: "Escenario de DEMOSTRACI\xD3N: una sonda submarina explora el oc\xE9ano
+    bajo el hielo de una luna ficticia. Ninguna cifra de esta pantalla procede de
+    una misi\xF3n real."
+  presupuestoMUSD: 100
+  costeBaseMUSD: 30
+  masaBaseKg: 150
+  memoriaMB: 400
+  minutosMisionPorSegundo: 1
+  objetivos:
+  - nombre: Cartografiar colonias luminosas
+    descripcion: "Fotografiar formaciones que emiten luz para conocer c\xF3mo se
+      distribuyen por el fondo."
+    instrumentoRecomendado: "C\xE1mara multiespectral"
+    escaneosRequeridos: 3
+  - nombre: Analizar fuentes termales
+    descripcion: "Medir la composici\xF3n del agua cerca de respiraderos calientes
+      del fondo."
+    instrumentoRecomendado: "Espectr\xF3metro"
+    escaneosRequeridos: 3
+  instrumentos:
+  - nombre: "C\xE1mara multiespectral"
+    queCambia: "Ligera y barata. Escanea r\xE1pido, pero genera muchos datos por
+      escaneo: llena antes la memoria y tarda m\xE1s en transmitirse."
+    costeMUSD: 12
+    masaKg: 8
+    consumoEscaneoW: 15
+    datosPorEscaneoMB: 120
+    segundosEscaneo: 3
+    valorCientifico: 2
+  - nombre: "Espectr\xF3metro"
+    queCambia: "M\xE1s caro, pesado y con mayor consumo. Escaneo lento, pero pocos
+      datos y m\xE1s valor cient\xEDfico por medici\xF3n."
+    costeMUSD: 28
+    masaKg: 25
+    consumoEscaneoW: 45
+    datosPorEscaneoMB: 60
+    segundosEscaneo: 6
+    valorCientifico: 4
+  baterias:
+  - nombre: "Bater\xEDa ligera"
+    queCambia: "Barata y ligera: la sonda acelera mejor, pero tendr\xE1s que volver
+      antes a la estaci\xF3n."
+    costeMUSD: 6
+    masaKg: 12
+    capacidadWh: 80
+  - nombre: "Bater\xEDa de alta capacidad"
+    queCambia: "Doble de energ\xEDa para alejarte m\xE1s, pero cuesta m\xE1s y pesa
+      casi el triple: la sonda acelera peor y ocupa capacidad del lanzador."
+    costeMUSD: 15
+    masaKg: 35
+    capacidadWh: 160
+  lanzadores:
+  - nombre: "Lanzador peque\xF1o"
+    queCambia: Barato, pero solo admite cargas ligeras. Obliga a elegir componentes
+      de poca masa.
+    costeMUSD: 20
+    capacidadCargaKg: 230
+  - nombre: Lanzador mediano
+    queCambia: Admite casi el doble de masa, pero consume gran parte del presupuesto.
+    costeMUSD: 38
+    capacidadCargaKg: 450
+  orbitas:
+  - nombre: "Relevo en \xF3rbita baja"
+    queCambia: "Sat\xE9lite de relevo ligero y barato. Enlace r\xE1pido, pero solo
+      hay contacto la mitad del tiempo."
+    costeMUSD: 4
+    masaReleKg: 20
+    velocidadEnlaceMBs: 40
+    fraccionContacto: 0.5
+  - nombre: "Relevo en \xF3rbita alta"
+    queCambia: "Contacto continuo, pero el enlace es m\xE1s lento y el sat\xE9lite
+      necesita m\xE1s combustible: pesa m\xE1s en el lanzador."
+    costeMUSD: 8
+    masaReleKg: 45
+    velocidadEnlaceMBs: 15
+    fraccionContacto: 1
+  catalogoNave: {fileID: 11400000, guid: 461c8cad04cf12b4eb91937201d5e468, type: 2}

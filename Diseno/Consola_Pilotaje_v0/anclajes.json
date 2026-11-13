@@ -1,0 +1,191 @@
+{
+  "sistema": "Unity: x derecha del piloto, y arriba, z hacia la ventana; metros; origen = pivote de NAV_Pilotaje_Consola_A",
+  "anclajes": {
+    "ANC_Pantalla_Estado": {
+      "pos": [
+        0.0,
+        0.919,
+        0.4631
+      ],
+      "normal": [
+        0.0,
+        0.6376,
+        -0.7704
+      ],
+      "arriba": [
+        0.0,
+        0.7704,
+        0.6376
+      ],
+      "nota": "centro de la superficie; area util 0.60 x 0.30 m; normal hacia el piloto"
+    },
+    "ANC_Pantalla_Propulsion": {
+      "pos": [
+        -0.8698,
+        0.919,
+        0.3582
+      ],
+      "normal": [
+        0.2635,
+        0.6376,
+        -0.7239
+      ],
+      "arriba": [
+        -0.2181,
+        0.7704,
+        0.5991
+      ],
+      "nota": "centro de la superficie; area util 0.38 x 0.26 m; normal hacia el piloto"
+    },
+    "ANC_Pantalla_Casco": {
+      "pos": [
+        0.8698,
+        0.919,
+        0.3582
+      ],
+      "normal": [
+        -0.2635,
+        0.6376,
+        -0.7239
+      ],
+      "arriba": [
+        0.2181,
+        0.7704,
+        0.5991
+      ],
+      "nota": "centro de la superficie; area util 0.38 x 0.26 m; normal hacia el piloto"
+    },
+    "ANC_Indicador": {
+      "pos": [
+        0.36,
+        0.7494,
+        0.3
+      ],
+      "nota": "base de la luz de estado"
+    },
+    "ANC_Palanca": {
+      "pos": [
+        0.8135,
+        0.7578,
+        0.0719
+      ],
+      "nota": "eje de giro de la palanca (gira sobre el eje x del ala derecha)"
+    },
+    "ANC_TapaEtapa": {
+      "pos": [
+        -0.3,
+        0.7827,
+        0.2469
+      ],
+      "nota": "bisagra de la tapa (gira sobre el eje x)"
+    },
+    "ANC_Asiento": {
+      "pos": [
+        0.0,
+        0.0,
+        -0.35
+      ],
+      "nota": "pivote del asiento en el suelo"
+    },
+    "ANC_Vista": {
+      "pos": [
+        0.0,
+        1.2,
+        -0.5
+      ],
+      "nota": "ojos del piloto sentado; orientar hacia +Z (ventana) con unos 8 grados hacia abajo"
+    }
+  },
+  "pivotes": {
+    "NAV_Pilotaje_Consola_A_Estructura": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "NAV_Pilotaje_Consola_A_Pantalla_Estado": [
+      0.0,
+      0.919,
+      0.4631
+    ],
+    "NAV_Pilotaje_Consola_A_Pantalla_Propulsion": [
+      -0.8698,
+      0.919,
+      0.3582
+    ],
+    "NAV_Pilotaje_Consola_A_Pantalla_Casco": [
+      0.8698,
+      0.919,
+      0.3582
+    ],
+    "NAV_Pilotaje_Consola_A_Bisel": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "NAV_Pilotaje_Consola_A_BordeAcento": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "NAV_Pilotaje_Consola_A_TiraLuz": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "NAV_Pilotaje_Consola_A_Indicador": [
+      0.36,
+      0.7494,
+      0.3
+    ],
+    "NAV_Pilotaje_Consola_A_Palanca": [
+      0.8135,
+      0.7578,
+      0.0719
+    ],
+    "NAV_Pilotaje_Consola_A_SelectorEtapa": [
+      -0.3,
+      0.7416,
+      0.1983
+    ],
+    "NAV_Pilotaje_Consola_A_TapaEtapa": [
+      -0.3,
+      0.7827,
+      0.2469
+    ],
+    "NAV_Pilotaje_Consola_A_Interruptores": [
+      -0.8014,
+      0.7247,
+      0.0606
+    ],
+    "NAV_Pilotaje_Asiento_A_Base": [
+      0.0,
+      0.0,
+      -0.35
+    ],
+    "NAV_Pilotaje_Asiento_A_Cojin": [
+      0.0,
+      0.38,
+      -0.35
+    ],
+    "NAV_Pilotaje_Asiento_A_Respaldo": [
+      0.0,
+      0.48,
+      -0.65
+    ],
+    "NAV_Pilotaje_Asiento_A_Reposabrazos": [
+      0.0,
+      0.64,
+      -0.4
+    ],
+    "NAV_Pilotaje_Consola_A_COL": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "AYUDA_FlechaProa": [
+      0.0,
+      0.0,
+      1.1
+    ]
+  }
+}
