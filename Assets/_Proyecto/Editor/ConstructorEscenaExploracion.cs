@@ -33,7 +33,7 @@ public static class ConstructorEscenaExploracion
 
     static readonly Color ColorAgua = new Color(0.02f, 0.16f, 0.22f);
 
-    [MenuItem("Prototipo/1. Crear escena de exploración")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/1. Crear escena de exploración", false, 1000)]
     public static void Crear()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())

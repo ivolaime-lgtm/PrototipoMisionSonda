@@ -159,6 +159,13 @@ namespace PrototipoMision
                     nombre = (c1 != null && c1 != c0 ? c1.nombre : "Motor de alto empuje") + " · EM-4X",
                     queCambia = "560 kN: acelera y frena un 40 % más rápido, pero gasta 155 kg/s (menos eficiente) y pesa 600 kg más.",
                     costeMUSD = c1 != null && c1 != c0 ? c1.costeMUSD : 8f, masaKg = 3600f, empujeN = 560000f, consumoKgS = 155f
+                },
+                // Tercera alternativa, solo EM-4X (no existe en el catálogo de la nave antigua). DEMOSTRACIÓN.
+                new OpcionMotorNave
+                {
+                    nombre = "Motor de alta eficiencia · EM-4X",
+                    queCambia = "280 kN y 56 kg/s: el que más cambio de velocidad saca de cada kg de combustible, pero acelera y frena un 30 % más despacio y pesa 400 kg más.",
+                    costeMUSD = 10f, masaKg = 3400f, empujeN = 280000f, consumoKgS = 56f
                 }
             };
         }
@@ -179,8 +186,55 @@ namespace PrototipoMision
                     nombre = (c1 != null && c1 != c0 ? c1.nombre : "Tanque ampliado") + " · EM-4X",
                     queCambia = "Caben 36 000 kg, pero pesa 1100 kg más vacío: con la misma carga de combustible la nave acelera menos.",
                     costeMUSD = c1 != null && c1 != c0 ? c1.costeMUSD : 6f, masaVaciaKg = 3600f, capacidadKg = 36000f
+                },
+                // Tercera alternativa, solo EM-4X. DEMOSTRACIÓN.
+                new OpcionTanqueNave
+                {
+                    nombre = "Tanque ligero · EM-4X",
+                    queCambia = "Solo caben 15 000 kg, pero pesa 1000 kg menos vacío: la nave acelera mejor. Limita el combustible: revisa el cambio de velocidad de la misión.",
+                    costeMUSD = 3f, masaVaciaKg = 1500f, capacidadKg = 15000f
                 }
             };
+        }
+
+        /// <summary>
+        /// Instrumentos para la EM-4X: los del catálogo de misión (sin cambiarlos; otras escenas los usan) más uno propio.
+        /// Los índices 0 y 1 son los de siempre, así que las preparaciones guardadas siguen valiendo.
+        /// </summary>
+        public static List<OpcionInstrumento> Instrumentos(CatalogoMision cat)
+        {
+            List<OpcionInstrumento> l = new List<OpcionInstrumento>();
+            if (cat != null && cat.instrumentos != null) l.AddRange(cat.instrumentos);
+            l.Add(new OpcionInstrumento
+            {
+                nombre = SensorDiagnostico,
+                queCambia = "Sensor barato y de bajo consumo para revisar equipos de cerca: capturas rápidas y pocos datos. " +
+                            "Recomendado para la inspección del satélite K-2; en las otras misiones cada captura vale la mitad.",
+                costeMUSD = 10f, masaKg = 12f, consumoEscaneoW = 10f, datosPorEscaneoMB = 40f, segundosEscaneo = 2f, valorCientifico = 3
+            });
+            return l;
+        }
+
+        public const string SensorDiagnostico = "Sensor de diagnóstico · EM-4X";
+
+        /// <summary>¿Es recomendado este instrumento para la misión? (principal u otros admitidos)</summary>
+        public static bool Recomendado(DefinicionMisionMVP m, OpcionInstrumento ins)
+        {
+            if (m == null || ins == null) return false;
+            if (string.Equals(m.instrumentoRecomendado.Trim(), ins.nombre.Trim(), StringComparison.OrdinalIgnoreCase)) return true;
+            foreach (string o in m.otrosRecomendados)
+                if (string.Equals(o.Trim(), ins.nombre.Trim(), StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
+        }
+
+        /// <summary>Resumen de una preparación hipotética (para comparar alternativas antes de encargarlas). No cambia nada.</summary>
+        public static ResumenExpedicion Variante(PreparacionExpedicion p, CatalogoMision cat, Action<PreparacionExpedicion> cambio)
+        {
+            PreparacionExpedicion c = p.Copia();
+            cambio(c);
+            OpcionTanqueNave t = Elegir(Tanques(cat != null ? cat.catalogoNave : null), c.tanque);
+            c.tramosCombustible = Mathf.Clamp(c.tramosCombustible, 0, MaximoTramos(t));
+            return Calcular(c, cat);
         }
 
         static T Elegir<T>(List<T> lista, int i) where T : class
@@ -201,7 +255,7 @@ namespace PrototipoMision
             r.mision = misiones[Mathf.Clamp(p.mision, 0, misiones.Count - 1)];
             r.motor = Elegir(Motores(catNave), p.motor);
             r.tanque = Elegir(Tanques(catNave), p.tanque);
-            r.instrumento = cat != null ? Elegir(cat.instrumentos, p.instrumento) : null;
+            r.instrumento = cat != null ? Elegir(Instrumentos(cat), p.instrumento) : null;
             r.relevo = cat != null ? Elegir(cat.orbitas, p.relevo) : null;
             r.presupuestoMUSD = cat != null ? cat.presupuestoMUSD : 100f;
             r.memoriaMB = cat != null ? cat.memoriaMB : 400f;
@@ -210,7 +264,7 @@ namespace PrototipoMision
             if (r.relevo == null) r.problemas.Add("El catálogo de misión no tiene relevos de comunicaciones.");
             if (r.problemas.Count > 0) return r;
 
-            r.instrumentoRecomendado = string.Equals(r.mision.instrumentoRecomendado.Trim(), r.instrumento.nombre.Trim(), StringComparison.OrdinalIgnoreCase);
+            r.instrumentoRecomendado = Recomendado(r.mision, r.instrumento);
 
             // ---- Combustible: capacidad del tanque frente a combustible cargado
             int tramos = Mathf.Clamp(p.tramosCombustible, 0, MaximoTramos(r.tanque));
@@ -286,7 +340,9 @@ namespace PrototipoMision
                 r.avisos.Add($"Cambio de velocidad disponible ≈ {r.deltaVMS:0} m/s; para esta misión se aconsejan unos {r.mision.deltaVOrientativoMS:0} m/s " +
                              "(ida, maniobras y regreso). Carga más combustible o reduce masa.");
             if (!r.instrumentoRecomendado)
-                r.avisos.Add($"Para esta misión se recomienda «{r.mision.instrumentoRecomendado}»: con él cada captura vale el doble.");
+                r.avisos.Add($"Para esta misión se recomienda «{r.mision.instrumentoRecomendado}»" +
+                             (r.mision.otrosRecomendados.Length > 0 ? " o «" + string.Join("», «", r.mision.otrosRecomendados) + "»" : "") +
+                             ": con el instrumento elegido cada captura vale la mitad.");
             if (r.kits < 2 && r.mision.danoGuionizado)
                 r.avisos.Add("Zona de asteroides: se esperan impactos. Con un solo kit no hay margen para una segunda brecha.");
             float datos = r.mision.capturasRequeridas * r.instrumento.datosPorEscaneoMB;
@@ -308,7 +364,7 @@ namespace PrototipoMision
         public static bool Confirmada { get; private set; }
 
         public static void Confirmar(PreparacionExpedicion p) { Preparacion = p.Copia(); Confirmada = true; }
-        public static void Reabrir() { Confirmada = false; }
+        public static void Reabrir() { Confirmada = false; DespegueMostrado = false; }
 
         /// <summary>Guarda las selecciones en curso SIN confirmarlas (el hangar no pierde lo elegido al salir y volver).</summary>
         public static void GuardarBorrador(PreparacionExpedicion p)
@@ -322,15 +378,19 @@ namespace PrototipoMision
         static bool embarquePendiente;
 
         /// <summary>Embarque confirmado en el hangar: ExpedicionMVP empezará directamente en la transición, sin otra preparación.</summary>
-        public static void MarcarEmbarque()
+        public static void MarcarEmbarque(bool despegueMostrado = false)
         {
             if (!Confirmada) return;
             DesdeHangar = true;
             embarquePendiente = true;
+            DespegueMostrado = despegueMostrado;
         }
 
+        /// <summary>El hangar ya mostró la secuencia de despegue: los mensajes de transición no la repiten.</summary>
+        public static bool DespegueMostrado { get; private set; }
+
         /// <summary>El embarque no llegó a abrir ExpedicionMVP: se anula para no saltarse la preparación más tarde.</summary>
-        public static void CancelarEmbarque() { embarquePendiente = false; }
+        public static void CancelarEmbarque() { embarquePendiente = false; DespegueMostrado = false; }
 
         /// <summary>Lo llama ExpedicionMVP al arrancar: true una sola vez por embarque.</summary>
         public static bool ConsumirEmbarque()
@@ -347,6 +407,7 @@ namespace PrototipoMision
             Confirmada = false;
             DesdeHangar = false;
             embarquePendiente = false;
+            DespegueMostrado = false;
         }
     }
 
@@ -355,6 +416,8 @@ namespace PrototipoMision
     {
         public int id;
         public string nombre, resumen, instrumentoRecomendado;
+        /// <summary>Otros instrumentos que también valen el doble en esta misión.</summary>
+        public string[] otrosRecomendados = new string[0];
         public float deltaVOrientativoMS, duracionOrientativaS;
         public bool requiereSonda, danoGuionizado;
         public int capturasRequeridas;
@@ -384,7 +447,8 @@ namespace PrototipoMision
                 {
                     id = 1, nombre = "Misión 2 · Inspección del satélite K-2",
                     resumen = "Encuentro con el satélite artificial K-2, diagnóstico, reinicio de servicio y regreso a la base.",
-                    instrumentoRecomendado = "Espectrómetro", deltaVOrientativoMS = 450f, duracionOrientativaS = 900f,
+                    instrumentoRecomendado = "Espectrómetro", otrosRecomendados = new[] { BalanceEM4X.SensorDiagnostico },
+                    deltaVOrientativoMS = 450f, duracionOrientativaS = 900f,
                     capturasRequeridas = 1, objetivoInicial = "k2",
                     pasos = new List<string>
                     {

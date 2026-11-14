@@ -180,9 +180,10 @@ namespace PrototipoMision
                 if (Opcion(b.tanque == i, tanques[i].nombre, tanques[i].queCambia, tanques[i].costeMUSD, i == 0)) b.tanque = i;
 
             GUILayout.Label("INSTRUMENTO CIENTÍFICO", sTitulo);
-            for (int i = 0; i < cat.instrumentos.Count; i++)
+            List<OpcionInstrumento> instrumentos = BalanceEM4X.Instrumentos(cat);
+            for (int i = 0; i < instrumentos.Count; i++)
             {
-                OpcionInstrumento ins = cat.instrumentos[i];
+                OpcionInstrumento ins = instrumentos[i];
                 string det = $"Captura de {ins.segundosEscaneo * 3f:0} s · {ins.datosPorEscaneoMB:0} MB · valor {ins.valorCientifico} · " +
                              $"consumo {ins.consumoEscaneoW * BalanceEM4X.FactorConsumoCatalogo / 1000f:0.#} kW · {ins.masaKg:0} kg";
                 if (Opcion(b.instrumento == i, ins.nombre, det, ins.costeMUSD, i == 0)) b.instrumento = i;
@@ -291,9 +292,13 @@ namespace PrototipoMision
             else if (juego.Tarjeta == 1)
             {
                 GUILayout.Label("2 · LANZAMIENTO DE LA TRIPULACIÓN", sGrande);
-                GUILayout.Label("La lanzadera L-4 despega desde tierra con la tripulación, alcanza la órbita de la base y atraca bajo el módulo de Mando de la EM-4X.\n\n" +
+                GUILayout.Label((ExpedicionActual.DespegueMostrado
+                                    ? "La lanzadera L-4 que acabas de ver despegar alcanza la órbita de la base y atraca bajo el módulo de Mando de la EM-4X.\n\n"
+                                    : "La lanzadera L-4 despega desde tierra con la tripulación, alcanza la órbita de la base y atraca bajo el módulo de Mando de la EM-4X.\n\n") +
                                 "La lanzadera tiene configuración fija en este MVP: su combustible y sus recursos son suyos y no se mezclan con los de la EM-4X.", sTexto);
-                GUILayout.Label("<i>(Mensaje de transición: el despegue terrestre existe aparte en la escena Nave y no se ha modificado.)</i>", sPequeno);
+                GUILayout.Label(ExpedicionActual.DespegueMostrado
+                    ? "<i>(Mensaje de transición: el ascenso y el atraque no se simulan.)</i>"
+                    : "<i>(Mensaje de transición: el despegue terrestre existe aparte en el hangar terrestre y en la escena Nave.)</i>", sPequeno);
             }
             else
             {

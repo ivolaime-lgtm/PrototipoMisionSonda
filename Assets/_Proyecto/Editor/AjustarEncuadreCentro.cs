@@ -30,7 +30,7 @@ public static class AjustarEncuadreCentro
     static readonly Vector3 EjeOrbita = new Vector3(0.1f, 1f, 0.3f);
     static readonly Vector3 RotacionSol = new Vector3(26f, -34f, 0f);
 
-    [MenuItem("Prototipo/7. Ajustar encuadre del centro de operaciones")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/7. Ajustar encuadre del centro de operaciones", false, 1006)]
     public static void Ajustar()
     {
         if (!File.Exists(RutaEscena))

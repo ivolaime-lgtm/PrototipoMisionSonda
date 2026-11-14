@@ -49,7 +49,7 @@ public static class ConstructorCiencia
         "ficticio: un escaneo lento consume más energía, así que conviene vigilar la batería antes de empezar."
     };
 
-    [MenuItem("Prototipo/4. Añadir ciencia a Exploracion")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/4. Añadir ciencia a Exploracion", false, 1003)]
     public static void AnadirCiencia()
     {
         if (!File.Exists(RutaExploracion))

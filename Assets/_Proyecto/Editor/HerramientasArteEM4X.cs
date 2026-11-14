@@ -45,7 +45,7 @@ public static class HerramientasArteEM4X
         return t;
     }
 
-    [MenuItem("Prototipo/19. Preparar carpetas de arte y tabla de sustitución")]
+    [MenuItem("Prototipo/Arte y pruebas/1. Preparar carpetas de arte y tabla de sustitución (antes 19)", false, 100)]
     public static void Preparar()
     {
         if (EditorApplication.isPlaying)
@@ -80,7 +80,7 @@ public static class HerramientasArteEM4X
             "\nNo se ha modificado ningún script, escena guardada ni paquete.", "Aceptar");
     }
 
-    [MenuItem("Prototipo/20. Crear escena ModeloPrueba (importar una pieza)")]
+    [MenuItem("Prototipo/Arte y pruebas/2. Crear escena ModeloPrueba (antes 20)", false, 101)]
     public static void CrearEscena()
     {
         if (File.Exists(RutaEscena))
@@ -104,12 +104,12 @@ public static class HerramientasArteEM4X
             Debug.Log("[Arte EM-4X] Escena creada en " + RutaEscena + ". Asigna modelos en la tabla y pulsa Play.");
     }
 
-    [MenuItem("Prototipo/21. Comprobar recursos de arte (_Arte)")]
+    [MenuItem("Prototipo/Arte y pruebas/3. Comprobar recursos de arte (antes 21)", false, 102)]
     public static void Comprobar()
     {
         if (!AssetDatabase.IsValidFolder("Assets/_Arte"))
         {
-            EditorUtility.DisplayDialog("Sin carpeta de arte", "Usa antes el menú 19.", "Aceptar");
+            EditorUtility.DisplayDialog("Sin carpeta de arte", "Usa antes «Prototipo → Arte y pruebas → 1. Preparar carpetas de arte».", "Aceptar");
             return;
         }
         Regex convencion = new Regex(@"^(EM4X|HGR)_[A-Za-z0-9]+_[A-Za-z0-9]+(_[A-Za-z0-9]+)*_v\d{2}$");

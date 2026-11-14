@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace PrototipoMision
 {
-    public enum EstacionHangar { Mision, Configuracion, Manifiesto, Estanteria, Revision, Embarque }
+    public enum EstacionHangar { Mision, Configuracion, Manifiesto, Estanteria, Revision, Embarque, Holograma, Combustible, Carro }
 
     /// <summary>Punto de interacción del hangar (por cercanía y mirando hacia él).</summary>
     public class PuntoHangar
@@ -20,12 +20,12 @@ namespace PrototipoMision
 
     /// <summary>
     /// HANGAR TERRESTRE (escena HangarExpedicion). Integrador: construye el hangar con bloques provisionales, mueve al
-    /// personaje, gestiona las terminales y el embarque.
+    /// personaje, gestiona terminales, holograma, carro de carga, puesto de combustible, embarque y despegue.
     ///
     /// Datos: NO hay otra configuración. Las elecciones son la PreparacionExpedicion de ExpedicionActual (la misma que usa
     /// ExpedicionMVP), el presupuesto y los requisitos salen de BalanceEM4X.Calcular, y la carga se deriva de ellos
-    /// (CargaHangar). Al embarcar se confirma esa preparación y se abre ExpedicionMVP, que empieza en la transición.
-    /// La EM-4X sigue en órbita: aquí solo se ve como holograma. Sin lanzadera detallada ni despegue.
+    /// (CargaHangar). Al embarcar se confirma esa preparación; tras la secuencia de despegue se abre ExpedicionMVP.
+    /// La EM-4X sigue en órbita: aquí solo se ve como holograma.
     /// </summary>
     public class HangarTerrestre : MonoBehaviour
     {
@@ -43,25 +43,34 @@ namespace PrototipoMision
         public PuntoHangar Abierta { get; private set; }
         public bool CursorLibre { get; private set; }
         public bool Listo { get; private set; }
+        public bool EnDespegue => despegue != null && despegue.Activa;
+        public HologramaInteractivo Holo { get; private set; }
+        public CarroCarga Carro { get; private set; }
+        public bool AlimentacionVerificada { get; private set; }
         public string Aviso { get; private set; } = "";
         public bool AvisoVisible => Aviso.Length > 0 && Time.time < avisoHasta;
         public readonly List<PuntoHangar> Puntos = new List<PuntoHangar>();
 
+        /// <summary>Lotes que se llevan con el carro (el combustible se autoriza en su puesto).</summary>
+        public static readonly string[] LotesCarro = { "suministros", "kits", "sonda", "componentes" };
+        static readonly string[] NombresCarro = { "Suministros", "Kits de reparación", "Sonda de despliegue", "Componentes de sustitución" };
+
         float avisoHasta;
         Font fuente;
-        Material mSuelo, mPared, mTecho, mTerminal, mPantalla, mEstanteria, mEnvio, mEmbarque, mHolo, mHoloMarcado, mSenal;
+        Material mSuelo, mPared, mTecho, mTerminal, mPantalla, mEstanteria, mEnvio, mEmbarque, mSenal, mVerde, mRojo;
         readonly Dictionary<string, Material> mLote = new Dictionary<string, Material>();
         readonly Dictionary<string, Transform> estanterias = new Dictionary<string, Transform>();
         readonly Dictionary<string, Transform> huecosEnvio = new Dictionary<string, Transform>();
+        readonly Dictionary<string, Transform> contenedores = new Dictionary<string, Transform>();
+        readonly Dictionary<string, TextMesh> rotulosContenedor = new Dictionary<string, TextMesh>();
         readonly Dictionary<string, TextMesh> rotulosLote = new Dictionary<string, TextMesh>();
-        readonly Dictionary<string, Renderer> holoModulos = new Dictionary<string, Renderer>();
-        Transform holograma;
-        TextMesh rotuloHolo, rotuloRevision, rotuloEmbarque;
+        readonly PuntoHangar puntoCarro = new PuntoHangar { tipo = EstacionHangar.Carro, nombre = "Carro de carga" };
+        Renderer indicadorCombustible;
+        TextMesh rotuloCombustible, rotuloRevision, rotuloEmbarque;
+        SecuenciaDespegue despegue;
         AudioSource audioFuente;
         AudioClip sonidoOk, sonidoError;
-
-        static readonly string[] OrdenLotes = { "combustible", "suministros", "kits", "sonda", "componentes" };
-        static readonly string[] NombresLotes = { "Combustible", "Suministros", "Kits de reparación", "Sonda de despliegue", "Componentes de sustitución" };
+        static readonly Rect ZonaEnvio = new Rect(-10f, 50f, 8f, 6f);    // planta (x, z)
 
         void Awake()
         {
@@ -73,7 +82,6 @@ namespace PrototipoMision
         {
             fuente = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             Materiales();
-            Construir();
 
             // Vuelta de una expedición: nueva preparación con las mismas selecciones, carga por preparar otra vez.
             if (CargaHangar.Embarcado)
@@ -83,10 +91,13 @@ namespace PrototipoMision
                 ExpedicionActual.Reabrir();
                 Avisar("De vuelta en tierra. Las selecciones se conservan; la carga de la próxima expedición está por preparar.", 8f);
             }
-            else Avisar("Hangar terrestre. Sigue los rótulos: 1 Misión · 2 Configuración · 3 Carga · 4 Revisión · 5 Embarque.", 8f);
+            else Avisar("Hangar terrestre. Sigue los rótulos: 1 Misión · 2 Configuración y holograma · 3 Carga y combustible · 4 Revisión · 5 Embarque.", 8f);
 
             Borrador = ExpedicionActual.Preparacion.Copia();
-            Recalcular();
+            Resumen = BalanceEM4X.Calcular(Borrador, Catalogo);
+            Lotes = CargaHangar.Lotes(Borrador, Resumen);
+            Construir();
+            despegue = gameObject.AddComponent<SecuenciaDespegue>();
 
             Personaje = new GameObject().AddComponent<CaminanteHangar>();
             Personaje.Iniciar(new Vector3(0f, 0.05f, 3f), 0f);
@@ -97,6 +108,7 @@ namespace PrototipoMision
             audioFuente.volume = 0.35f;
             sonidoOk = Tono("ok", 880f, 0.12f);
             sonidoError = Tono("error", 180f, 0.22f);
+            Recalcular();
             Listo = true;
         }
 
@@ -119,7 +131,11 @@ namespace PrototipoMision
             }
             string antes = JsonUtility.ToJson(Borrador);
             cambio(Borrador);
-            Borrador.tramosCombustible = Mathf.Clamp(Borrador.tramosCombustible, 0, BalanceEM4X.MaximoTramos(BalanceEM4X.Tanques(Catalogo.catalogoNave)[Mathf.Clamp(Borrador.tanque, 0, 1)]));
+            List<OpcionTanqueNave> tanques = BalanceEM4X.Tanques(Catalogo.catalogoNave);
+            Borrador.motor = Mathf.Clamp(Borrador.motor, 0, BalanceEM4X.Motores(Catalogo.catalogoNave).Count - 1);
+            Borrador.tanque = Mathf.Clamp(Borrador.tanque, 0, tanques.Count - 1);
+            Borrador.instrumento = Mathf.Clamp(Borrador.instrumento, 0, BalanceEM4X.Instrumentos(Catalogo).Count - 1);
+            Borrador.tramosCombustible = Mathf.Clamp(Borrador.tramosCombustible, 0, BalanceEM4X.MaximoTramos(tanques[Borrador.tanque]));
             Borrador.suministrosExtra = Mathf.Clamp(Borrador.suministrosExtra, 0, BalanceEM4X.MaximoSuministrosExtra);
             Borrador.kitsExtra = Mathf.Clamp(Borrador.kitsExtra, 0, BalanceEM4X.MaximoKitsExtra);
             if (JsonUtility.ToJson(Borrador) == antes) return false;
@@ -138,21 +154,34 @@ namespace PrototipoMision
             Respuesta(true, "Misión seleccionada: " + Resumen.mision.nombre + (Resumen.mision.requiereSonda && !Borrador.sonda ? ". Necesita sonda: añádela en la terminal de Carga." : "."));
         }
 
+        /// <summary>Encarga la alternativa previsualizada en el holograma (mismo cambio que en la terminal 2).</summary>
+        public void EncargarPieza(PiezaHolo pieza, int indice)
+        {
+            bool hecho = Cambiar(p =>
+            {
+                if (pieza == PiezaHolo.Motor) p.motor = indice;
+                else if (pieza == PiezaHolo.Tanque) p.tanque = indice;
+                else p.instrumento = indice;
+            });
+            if (hecho) Respuesta(true, "Cambio encargado para la EM-4X en órbita. El presupuesto previsto se ha recalculado entero.");
+        }
+
         public bool ConfigValida => Resumen != null && Resumen.problemas.Count - (PresupuestoSuperado ? 1 : 0) == 0;
         public bool PresupuestoSuperado => Resumen != null && Resumen.costeTotalMUSD > Resumen.presupuestoMUSD + 0.001f;
 
         public struct Requisito { public string texto; public bool ok; }
 
-        /// <summary>Requisitos obligatorios para embarcar (todos salen de los validadores existentes y de la carga).</summary>
+        /// <summary>Requisitos obligatorios para embarcar (validadores existentes + carga preparada).</summary>
         public List<Requisito> Requisitos()
         {
-            int pendientes = CargaHangar.Pendientes(Lotes);
+            List<string> pendientes = new List<string>();
+            foreach (LoteCarga lo in Lotes) if (!lo.preparado) pendientes.Add(lo.nombre.ToLower());
             return new List<Requisito>
             {
                 new Requisito { ok = CargaHangar.MisionElegida, texto = CargaHangar.MisionElegida ? "Misión seleccionada: " + Resumen.mision.nombre : "Elegir la misión en la terminal de Misión" },
                 new Requisito { ok = ConfigValida, texto = ConfigValida ? "Configuración válida" : "Configuración no válida (ver problemas)" },
                 new Requisito { ok = !PresupuestoSuperado, texto = $"Presupuesto: {Resumen.costeTotalMUSD:0.#} de {Resumen.presupuestoMUSD:0} M USD" + (PresupuestoSuperado ? " · SUPERADO" : "") },
-                new Requisito { ok = pendientes == 0, texto = pendientes == 0 ? $"Carga preparada ({Lotes.Count} lotes)" : $"Faltan {pendientes} lote(s) de carga por preparar en las estanterías" },
+                new Requisito { ok = pendientes.Count == 0, texto = pendientes.Count == 0 ? $"Carga preparada ({Lotes.Count} lotes)" : "Falta preparar: " + string.Join(", ", pendientes) },
                 new Requisito { ok = ExpedicionActual.Confirmada, texto = ExpedicionActual.Confirmada ? "Preparación cerrada (confirmada)" : "Cerrar la preparación en la terminal de Revisión" }
             };
         }
@@ -175,30 +204,111 @@ namespace PrototipoMision
             Respuesta(true, "Preparación REABIERTA con las mismas selecciones. El presupuesto se recalcula entero; nada se cobra dos veces.");
         }
 
-        /// <summary>Preparar un lote en su estantería: confirma la carga presupuestada, no crea recursos.</summary>
-        void PrepararLote(string id)
+        // ------------------------------------------------------------------ Combustible (comprobación corta con consecuencia)
+
+        public LoteCarga LoteCombustible => Lotes.Find(x => x.id == "combustible");
+
+        public void VerificarAlimentacion()
         {
-            LoteCarga lo = Lotes.Find(x => x.id == id);
-            if (lo == null) { Respuesta(false, "Esta carga no hace falta con la selección actual (cantidad 0)."); return; }
-            if (lo.preparado) { Respuesta(false, lo.nombre + " ya está preparado en la zona de envío."); return; }
+            AlimentacionVerificada = true;
+            ActualizarVisual();
+            Respuesta(true, "Alimentación del puesto de combustible verificada: bomba y línea a la zona de envío en verde.");
+        }
+
+        /// <summary>Autoriza el llenado del combustible YA presupuestado (no añade combustible ni coste).</summary>
+        public void AutorizarLlenado()
+        {
+            LoteCarga lo = LoteCombustible;
+            if (lo == null) { Respuesta(false, "No se envía combustible desde tierra con la selección actual."); return; }
+            if (lo.preparado) { Respuesta(false, "El llenado ya está autorizado."); return; }
+            if (!AlimentacionVerificada) { Respuesta(false, "Primero verifica la alimentación del puesto."); return; }
             CargaHangar.Preparar(lo);
             Lotes = CargaHangar.Lotes(Borrador, Resumen);
             ActualizarVisual();
-            int faltan = CargaHangar.Pendientes(Lotes);
-            Respuesta(true, $"{lo.nombre} preparado ({lo.detalle}) y llevado a la zona de envío." + (faltan > 0 ? $" Faltan {faltan} lote(s)." : " Carga completa."));
+            Respuesta(true, $"Llenado autorizado: {lo.detalle} preparados para el envío a órbita.");
         }
+
+        // ------------------------------------------------------------------ Carro de carga
+
+        void CargarEnCarro(string id)
+        {
+            LoteCarga lo = Lotes.Find(x => x.id == id);
+            if (lo == null) { Respuesta(false, "Esta carga no hace falta con la selección actual (cantidad 0)."); return; }
+            if (lo.preparado) { Respuesta(false, lo.nombre + " ya está en la zona de envío."); return; }
+            if (Carro.Lote != null) { Respuesta(false, "El carro ya lleva " + NombreLote(Carro.Lote) + ": llévalo a la zona de envío (amarilla)."); return; }
+            Carro.Cargar(lo.id, lo.firma);
+            ActualizarVisual();
+            Respuesta(true, $"Contenedor de {lo.nombre.ToLower()} ({lo.detalle.Replace("\n", ", ")}) fijado al carro. Llévalo a la zona de envío.");
+        }
+
+        static string NombreLote(string id)
+        {
+            int i = Array.IndexOf(LotesCarro, id);
+            return i >= 0 ? NombresCarro[i].ToLower() : id;
+        }
+
+        void Entregar()
+        {
+            LoteCarga lo = Lotes.Find(x => x.id == Carro.Lote);
+            if (lo == null || lo.firma != Carro.Firma) { Carro.Vaciar(); ActualizarVisual(); return; }
+            CargaHangar.Preparar(lo);
+            Carro.Vaciar();
+            Lotes = CargaHangar.Lotes(Borrador, Resumen);
+            ActualizarVisual();
+            int faltan = CargaHangar.Pendientes(Lotes);
+            Respuesta(true, $"{lo.nombre} entregado en la zona de envío: LISTO." + (faltan > 0 ? $" Faltan {faltan} lote(s)." : " Carga completa."));
+        }
+
+        public void RecuperarCarro()
+        {
+            Carro.Recuperar();
+            Personaje.FactorVelocidad = 1f;
+            ActualizarVisual();
+            Respuesta(true, "Carro devuelto a su base, vacío. Lo que llevaba ha vuelto a su estantería.");
+        }
+
+        public string EstadoCarro()
+        {
+            if (Carro == null) return "";
+            string carga = Carro.Lote != null ? "lleva " + NombreLote(Carro.Lote) : "vacío";
+            return $"Carro: {carga}{(Carro.Empujando ? " · empujando" : "")}{(Carro.Bloqueado ? " · BLOQUEADO (retrocede, gira o pulsa R)" : "")}";
+        }
+
+        // ------------------------------------------------------------------ Embarque y despegue
 
         public void Embarcar()
         {
             foreach (Requisito r in Requisitos())
                 if (!r.ok) { Respuesta(false, "No se puede embarcar: " + r.texto + "."); return; }
-            ExpedicionActual.MarcarEmbarque();
+            Abierta = null;
+            Carro.Soltar();
+            Personaje.Control = false;
+            Personaje.Camara.enabled = false;
+            ResumenExpedicion re = Resumen;
+            List<string> comprobacion = new List<string>
+            {
+                "Preparación cerrada: " + re.mision.nombre,
+                $"Presupuesto: {re.costeTotalMUSD:0.#} de {re.presupuestoMUSD:0} M USD",
+                $"Carga enviada a órbita: {Lotes.Count} lote(s) preparados",
+                $"EM-4X (en órbita): {re.motor.nombre} · {re.tanque.nombre}",
+                $"{re.instrumento.nombre} · combustible {re.combustibleKg / 1000f:0.0} t · Δv ≈ {re.deltaVMS:0} m/s",
+                "Tripulación a bordo de la lanzadera L-4 · compuerta cerrada"
+            };
+            despegue.Iniciar(Personaje.Ojos, comprobacion, AbrirExpedicion);
+        }
+
+        void AbrirExpedicion()
+        {
+            ExpedicionActual.MarcarEmbarque(true);
             CargaHangar.Embarcado = true;
             string error;
             if (!CargadorEscenas.Cargar(CargadorEscenas.Expedicion, out error))
             {
                 CargaHangar.Embarcado = false;
                 ExpedicionActual.CancelarEmbarque();     // no dejar un embarque pendiente si la escena no se abrió
+                despegue.Detener();
+                Personaje.Camara.enabled = true;
+                BloquearCursor(true);
                 Respuesta(false, error);
             }
         }
@@ -238,20 +348,21 @@ namespace PrototipoMision
         {
             Abierta = p;
             BloquearCursor(false);       // cursor libre y personaje quieto mientras se usa la terminal
+            if (p.tipo == EstacionHangar.Holograma) Holo.Entrar(Personaje.Camara);
         }
 
         public void Cerrar()
         {
+            if (Abierta != null && Abierta.tipo == EstacionHangar.Holograma) Holo.Salir(Personaje.Camara);
             Abierta = null;
             BloquearCursor(true);
         }
 
         void Update()
         {
-            if (!Listo) return;
+            if (!Listo || EnDespegue) return;
             Keyboard k = Keyboard.current;
             Mouse raton = Mouse.current;
-            if (holograma != null) holograma.Rotate(0f, 12f * Time.deltaTime, 0f, Space.World);
             if (k == null) return;
 
             if (Abierta != null)
@@ -265,25 +376,60 @@ namespace PrototipoMision
                 if (CursorLibre) Avisar("Cursor libre: el personaje está quieto. Clic o Esc para volver a mirar y caminar.", 4f);
             }
             if (CursorLibre && raton != null && raton.leftButton.wasPressedThisFrame) BloquearCursor(true);
+            if (!CursorLibre && k.rKey.wasPressedThisFrame) RecuperarCarro();
 
-            // Punto más cercano delante del personaje
+            // Entrega automática al llegar a la zona de envío con un contenedor
+            if (Carro.Lote != null && ZonaEnvio.Contains(new Vector2(Carro.transform.position.x, Carro.transform.position.z))) Entregar();
+
+            // Punto más cercano delante del personaje (el carro cuenta cuando no se está empujando)
             PuntoCercano = null;
             float mejor = 2.6f;
             Vector3 pos = Personaje.transform.position;
             Vector3 fw = Personaje.transform.forward;
+            puntoCarro.posicion = Carro.transform.position - Carro.transform.forward * (CarroCarga.Largo / 2f + 0.3f);
+            puntoCarro.objetivo = Carro.transform.position;
             foreach (PuntoHangar p in Puntos)
+                if (Mas(p, pos, fw, ref mejor)) PuntoCercano = p;
+            if (!Carro.Empujando && Mas(puntoCarro, pos, fw, ref mejor)) PuntoCercano = puntoCarro;
+            if (CursorLibre || !k.eKey.wasPressedThisFrame) return;
+
+            if (Carro.Empujando)
             {
-                Vector3 d = p.posicion - pos; d.y = 0f;
-                float dist = d.magnitude;
-                if (dist > mejor) continue;
-                Vector3 haciaObjeto = p.objetivo - pos; haciaObjeto.y = 0f;
-                if (haciaObjeto.sqrMagnitude > 0.01f && Vector3.Dot(fw, haciaObjeto.normalized) < 0.25f) continue;   // de espaldas al objeto
-                mejor = dist;
-                PuntoCercano = p;
+                if (PuntoCercano != null && PuntoCercano.tipo == EstacionHangar.Estanteria) CargarEnCarro(PuntoCercano.lote);
+                else { Carro.Soltar(); Personaje.FactorVelocidad = 1f; Avisar("Carro soltado. E junto al asa para volver a empujarlo.", 3f); }
+                return;
             }
-            if (CursorLibre || PuntoCercano == null || !k.eKey.wasPressedThisFrame) return;
-            if (PuntoCercano.tipo == EstacionHangar.Estanteria) PrepararLote(PuntoCercano.lote);
-            else Abrir(PuntoCercano);
+            if (PuntoCercano == null) return;
+            switch (PuntoCercano.tipo)
+            {
+                case EstacionHangar.Carro:
+                    Carro.Empujar(Personaje.transform);
+                    Personaje.FactorVelocidad = 0.7f;
+                    Avisar("Empujando el carro. Acércalo a una estantería y pulsa E para cargar su contenedor; E en otro sitio lo suelta.", 6f);
+                    break;
+                case EstacionHangar.Estanteria:
+                {
+                    LoteCarga lo = Lotes.Find(x => x.id == PuntoCercano.lote);
+                    Respuesta(false, lo == null ? "Esta carga no hace falta con la selección actual."
+                                   : lo.preparado ? lo.nombre + " ya está en la zona de envío."
+                                   : "Trae el carro (junto a las estanterías, E en su asa para empujarlo) y pulsa E aquí para cargar el contenedor.");
+                    break;
+                }
+                default:
+                    Abrir(PuntoCercano);
+                    break;
+            }
+        }
+
+        static bool Mas(PuntoHangar p, Vector3 pos, Vector3 fw, ref float mejor)
+        {
+            Vector3 d = p.posicion - pos; d.y = 0f;
+            float dist = d.magnitude;
+            if (dist > mejor) return false;
+            Vector3 haciaObjeto = p.objetivo - pos; haciaObjeto.y = 0f;
+            if (haciaObjeto.sqrMagnitude > 0.01f && Vector3.Dot(fw, haciaObjeto.normalized) < 0.25f) return false;   // de espaldas al objeto
+            mejor = dist;
+            return true;
         }
 
         // ------------------------------------------------------------------ Construcción (bloques provisionales)
@@ -328,9 +474,8 @@ namespace PrototipoMision
             mEnvio = Mat(new Color(0.95f, 0.85f, 0.2f), false);
             mEmbarque = Mat(new Color(0.25f, 0.75f, 0.4f), false);
             mSenal = Mat(new Color(0.1f, 0.12f, 0.16f), false);
-            mHolo = MatTransparente(new Color(0.3f, 0.85f, 1f, 0.35f));
-            mHoloMarcado = MatTransparente(new Color(1f, 0.8f, 0.2f, 0.55f));
-            mLote["combustible"] = Mat(new Color(0.9f, 0.45f, 0.15f), false);
+            mVerde = Mat(new Color(0.3f, 0.95f, 0.45f), true);
+            mRojo = Mat(new Color(1f, 0.3f, 0.25f), true);
             mLote["suministros"] = Mat(new Color(0.25f, 0.5f, 0.85f), false);
             mLote["kits"] = Mat(new Color(1f, 0.6f, 0.1f), false);
             mLote["sonda"] = Mat(new Color(0.92f, 0.92f, 0.95f), false);
@@ -371,7 +516,7 @@ namespace PrototipoMision
             Puntos.Add(new PuntoHangar { tipo = tipo, nombre = nombre, posicion = pos, objetivo = objetivo, lote = lote });
 
         /// <summary>Terminal: pedestal y pantalla mirando hacia «frente» (dirección hacia donde está el jugador).</summary>
-        void Terminal(Transform raiz, string titulo, int numero, Vector3 pos, Vector3 frente, EstacionHangar tipo, Color color)
+        Transform Terminal(Transform raiz, string titulo, string numero, Vector3 pos, Vector3 frente, EstacionHangar tipo, Color color)
         {
             Transform t = new GameObject("Terminal · " + titulo).transform;
             t.SetParent(raiz, false);
@@ -383,6 +528,7 @@ namespace PrototipoMision
             Cubo("Marca en el suelo", t, new Vector3(0f, 0.01f, 1.2f), new Vector3(1.6f, 0.02f, 1.2f), Mat(color * 0.8f, true), false);
             Rotulo($"{numero} · {titulo.ToUpper()}\nE: usar", t, new Vector3(0f, 2.45f, 0f), 0.06f, color);
             Punto(tipo, titulo, t.TransformPoint(new Vector3(0f, 0f, 0.8f)), t.position);
+            return t;
         }
 
         void Construir()
@@ -396,11 +542,9 @@ namespace PrototipoMision
             Cubo("Pared oeste", raiz, new Vector3(-ancho / 2f - 0.25f, alto / 2f, fondo / 2f), new Vector3(0.5f, alto, fondo), mPared, true);
             Cubo("Pared este", raiz, new Vector3(ancho / 2f + 0.25f, alto / 2f, fondo / 2f), new Vector3(0.5f, alto, fondo), mPared, true);
             Cubo("Pared de entrada", raiz, new Vector3(0f, alto / 2f, -0.25f), new Vector3(ancho, alto, 0.5f), mPared, true);
-            // Pared del fondo con el hueco del embarque (4 × 4 m)
             Cubo("Pared del fondo (oeste)", raiz, new Vector3(-11f, alto / 2f, fondo + 0.25f), new Vector3(18f, alto, 0.5f), mPared, true);
             Cubo("Pared del fondo (este)", raiz, new Vector3(11f, alto / 2f, fondo + 0.25f), new Vector3(18f, alto, 0.5f), mPared, true);
             Cubo("Pared del fondo (dintel)", raiz, new Vector3(0f, (alto + 4f) / 2f, fondo + 0.25f), new Vector3(4f, alto - 4f, 0.5f), mPared, true);
-            // Pasarela de embarque: corto pasillo cerrado que acaba en la escotilla de la lanzadera (no se ve la lanzadera)
             Cubo("Pasarela (suelo)", raiz, new Vector3(0f, -0.25f, fondo + 3f), new Vector3(4f, 0.5f, 6f), mSuelo, true);
             Cubo("Pasarela (oeste)", raiz, new Vector3(-2.25f, 2f, fondo + 3f), new Vector3(0.5f, 4f, 6f), mEmbarque, true);
             Cubo("Pasarela (este)", raiz, new Vector3(2.25f, 2f, fondo + 3f), new Vector3(0.5f, 4f, 6f), mEmbarque, true);
@@ -410,7 +554,6 @@ namespace PrototipoMision
             Cubo("Valla de embarque (oeste)", raiz, new Vector3(-2.5f, 0.5f, fondo - 0.6f), new Vector3(0.1f, 1f, 1.2f), mEnvio, true);
             Cubo("Valla de embarque (este)", raiz, new Vector3(2.5f, 0.5f, fondo - 0.6f), new Vector3(0.1f, 1f, 1.2f), mEnvio, true);
 
-            // Luz: sin sombras para que el techo no deje el interior a oscuras
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.48f, 0.5f, 0.53f);
             Light sol = new GameObject("Luz del hangar").AddComponent<Light>();
@@ -420,34 +563,50 @@ namespace PrototipoMision
             sol.transform.rotation = Quaternion.Euler(60f, -30f, 0f);
 
             // Señales de orientación
-            Transform cartel = Cubo("Directorio", raiz, new Vector3(0f, 4.2f, 6f), new Vector3(7f, 2.4f, 0.1f), mSenal, false);
-            Rotulo("HANGAR TERRESTRE · PREPARACIÓN DE LA EXPEDICIÓN\n← 1 MISIÓN      2 CONFIGURACIÓN ORBITAL →\n← 3 CARGA (estanterías)      4 REVISIÓN →\n5 EMBARQUE (al fondo) ↑",
-                   raiz, new Vector3(0f, 4.2f, 5.9f), 0.06f, new Color(1f, 0.9f, 0.5f), false);   // se lee desde la entrada (mirando a +z)
-            cartel.name = "Directorio (cartel)";
+            Cubo("Directorio (cartel)", raiz, new Vector3(0f, 4.2f, 6f), new Vector3(8f, 2.4f, 0.1f), mSenal, false);
+            Rotulo("HANGAR TERRESTRE · PREPARACIÓN DE LA EXPEDICIÓN\n← 1 MISIÓN      2 CONFIGURACIÓN · HOLOGRAMA (centro) →\n← 3 CARGA (carro y estanterías)      COMBUSTIBLE · 4 REVISIÓN →\n5 EMBARQUE (al fondo) ↑",
+                   raiz, new Vector3(0f, 4.2f, 5.9f), 0.06f, new Color(1f, 0.9f, 0.5f), false);   // se lee desde la entrada
 
-            // A · Terminal de misión
-            Terminal(raiz, "Misión", 1, new Vector3(-7f, 0f, 11f), new Vector3(1f, 0f, -0.4f), EstacionHangar.Mision, new Color(0.5f, 0.8f, 1f));
+            // A · Misión
+            Terminal(raiz, "Misión", "1", new Vector3(-7f, 0f, 11f), new Vector3(1f, 0f, -0.4f), EstacionHangar.Mision, new Color(0.5f, 0.8f, 1f));
 
-            // B · Terminal de configuración orbital + holograma de la EM-4X
-            Terminal(raiz, "Configuración orbital", 2, new Vector3(6f, 0f, 16f), new Vector3(-1f, 0f, -0.3f), EstacionHangar.Configuracion, new Color(0.45f, 0.9f, 1f));
+            // B · Configuración orbital + holograma interactivo (centro visual)
+            Terminal(raiz, "Configuración orbital", "2", new Vector3(6f, 0f, 16f), new Vector3(-1f, 0f, -0.3f), EstacionHangar.Configuracion, new Color(0.45f, 0.9f, 1f));
             Cubo("Mesa del holograma", raiz, new Vector3(0f, 0.45f, 22f), new Vector3(5f, 0.9f, 5f), mTerminal, true);
-            Holograma(raiz, new Vector3(0f, 2.9f, 22f));
+            Holo = gameObject.AddComponent<HologramaInteractivo>();
+            Holo.Construir(this, raiz, new Vector3(0f, 2.9f, 22f), MatTransparente(new Color(0.3f, 0.85f, 1f, 0.35f)),
+                           MatTransparente(new Color(1f, 0.8f, 0.2f, 0.55f)), MatTransparente(new Color(0.6f, 1f, 1f, 0.8f)),
+                           MatTransparente(new Color(1f, 0.95f, 0.4f, 0.9f)));
+            Rotulo("2 · HOLOGRAMA DE LA EM-4X\nE: consultar y comparar piezas", raiz, new Vector3(0f, 1.6f, 19.2f), 0.045f, new Color(0.6f, 0.95f, 1f));
+            Punto(EstacionHangar.Holograma, "Holograma de la EM-4X (comparar y encargar piezas)", new Vector3(0f, 0f, 18.7f), new Vector3(0f, 0f, 22f));
 
-            // C · Terminal de carga (manifiesto), estanterías y zona de envío
-            Terminal(raiz, "Carga (manifiesto)", 3, new Vector3(-8f, 0f, 29f), new Vector3(1f, 0f, 0f), EstacionHangar.Manifiesto, new Color(1f, 0.7f, 0.3f));
-            for (int i = 0; i < OrdenLotes.Length; i++) Estanteria(raiz, OrdenLotes[i], NombresLotes[i], 27f + i * 5f);
-            Cubo("Zona de envío", raiz, new Vector3(-6f, 0.03f, 53f), new Vector3(8f, 0.06f, 6f), mEnvio, false);
-            Rotulo("ZONA DE ENVÍO A ÓRBITA\n(lotes preparados)", raiz, new Vector3(-6f, 3f, 53f), 0.06f, new Color(1f, 0.9f, 0.3f));
-            for (int i = 0; i < OrdenLotes.Length; i++)
+            // C · Carga: manifiesto, carro, estanterías y zona de envío
+            Terminal(raiz, "Carga (manifiesto)", "3", new Vector3(-8f, 0f, 29f), new Vector3(1f, 0f, 0f), EstacionHangar.Manifiesto, new Color(1f, 0.7f, 0.3f));
+            for (int i = 0; i < LotesCarro.Length; i++) Estanteria(raiz, LotesCarro[i], NombresCarro[i], 28f + i * 5.5f);
+            Cubo("Zona de envío", raiz, new Vector3(ZonaEnvio.center.x, 0.03f, ZonaEnvio.center.y), new Vector3(ZonaEnvio.width, 0.06f, ZonaEnvio.height), mEnvio, false);
+            Rotulo("ZONA DE ENVÍO A ÓRBITA\ntrae aquí el carro con cada contenedor", raiz, new Vector3(ZonaEnvio.center.x, 3f, ZonaEnvio.center.y), 0.06f, new Color(1f, 0.9f, 0.3f));
+            for (int i = 0; i < LotesCarro.Length; i++)
             {
-                Transform h = new GameObject("Hueco de envío · " + OrdenLotes[i]).transform;
+                Transform h = new GameObject("Hueco de envío · " + LotesCarro[i]).transform;
                 h.SetParent(raiz, false);
-                h.localPosition = new Vector3(-9f + (i % 3) * 3f, 0.06f, 51.5f + (i / 3) * 3f);
-                huecosEnvio[OrdenLotes[i]] = h;
+                h.localPosition = new Vector3(-8.5f + (i % 2) * 5f, 0.06f, 51.5f + (i / 2) * 3f);
+                huecosEnvio[LotesCarro[i]] = h;
             }
+            Carro = new GameObject().AddComponent<CarroCarga>();
+            Carro.Construir(new Vector3(-12f, 0f, 24f), mEstanteria, mTerminal);
+            Carro.LimiteMin = new Vector2(-19.2f, 1f);
+            Carro.LimiteMax = new Vector2(19.2f, fondo - 2f);
+            Rotulo("CARRO DE CARGA · base\nR: recuperar el carro", raiz, new Vector3(-12f, 2.2f, 24f), 0.045f, new Color(1f, 0.8f, 0.4f));
+
+            // Puesto de combustible (comprobación corta)
+            Transform pc = Terminal(raiz, "Combustible", "3b", new Vector3(14f, 0f, 30f), new Vector3(-1f, 0f, 0f), EstacionHangar.Combustible, new Color(1f, 0.55f, 0.25f));
+            Cubo("Depósito de combustible", raiz, new Vector3(17.5f, 2f, 30f), new Vector3(2.5f, 4f, 2.5f), mEstanteria, true);
+            indicadorCombustible = Cubo("Indicador del llenado", raiz, new Vector3(16.2f, 3.5f, 30f), new Vector3(0.1f, 0.6f, 0.6f), mRojo, false).GetComponent<Renderer>();
+            rotuloCombustible = Rotulo("", raiz, new Vector3(14f, 3.4f, 30f), 0.045f, Color.white);
+            pc.name = "Terminal · Combustible";
 
             // D · Revisión final
-            Terminal(raiz, "Revisión final", 4, new Vector3(8f, 0f, 46f), new Vector3(-1f, 0f, 0f), EstacionHangar.Revision, new Color(0.6f, 1f, 0.6f));
+            Terminal(raiz, "Revisión final", "4", new Vector3(8f, 0f, 46f), new Vector3(-1f, 0f, 0f), EstacionHangar.Revision, new Color(0.6f, 1f, 0.6f));
             rotuloRevision = Rotulo("", raiz, new Vector3(8f, 3.4f, 46f), 0.045f, Color.white);
 
             // E · Embarque
@@ -463,84 +622,71 @@ namespace PrototipoMision
             t.localPosition = new Vector3(-17.5f, 0f, z);
             Cubo("Pata", t, new Vector3(0f, 1.5f, -1.9f), new Vector3(1.2f, 3f, 0.1f), mEstanteria, true);
             Cubo("Pata", t, new Vector3(0f, 1.5f, 1.9f), new Vector3(1.2f, 3f, 0.1f), mEstanteria, true);
-            Cubo("Balda", t, new Vector3(0f, 0.3f, 0f), new Vector3(1.2f, 0.08f, 3.9f), mEstanteria, true);
             Cubo("Balda", t, new Vector3(0f, 1.6f, 0f), new Vector3(1.2f, 0.08f, 3.9f), mEstanteria, true);
-            Transform cajas = new GameObject("Cajas").transform;
-            cajas.SetParent(t, false);
-            estanterias[id] = cajas;
+            Transform hueco = new GameObject("Hueco del contenedor").transform;
+            hueco.SetParent(t, false);
+            hueco.localPosition = Vector3.zero;
+            estanterias[id] = hueco;
             rotulosLote[id] = Rotulo(nombre.ToUpper(), t, new Vector3(1.4f, 3.5f, 0f), 0.05f, new Color(1f, 0.8f, 0.4f));
             Punto(EstacionHangar.Estanteria, "Estantería de " + nombre, new Vector3(-16.2f, 0f, z), new Vector3(-17.5f, 0f, z), id);
-        }
 
-        /// <summary>Holograma provisional de la EM-4X a escala 1:15 (cajas de los módulos; la nave real está en órbita).</summary>
-        void Holograma(Transform raiz, Vector3 pos)
-        {
-            holograma = new GameObject("Holograma de la EM-4X (en órbita)").transform;
-            holograma.SetParent(raiz, false);
-            holograma.localPosition = pos;
-            Transform escala = new GameObject("Escala 1:15").transform;
-            escala.SetParent(holograma, false);
-            escala.localScale = Vector3.one / 15f;
-            escala.localPosition = new Vector3(0f, 0f, 11f / 15f);     // centra la nave (de z −41 a 18,7)
-            DefinicionNaveModular d = DefinicionNaveModular.ExpedicionEM4X();
-            foreach (ModuloNave m in d.modulos)
-            {
-                Bounds b = m.Limites;
-                Transform c = Cubo("Módulo " + m.id, escala, b.center, b.size, mHolo, false);
-                holoModulos[m.id] = c.GetComponent<Renderer>();
-            }
-            rotuloHolo = Rotulo("", raiz, pos + new Vector3(0f, 2.3f, 0f), 0.05f, new Color(0.6f, 0.95f, 1f));
+            // Un contenedor por lote (agrupa todas las unidades: no hay que llevar una caja por unidad)
+            Transform c = new GameObject("Contenedor · " + nombre).transform;
+            c.SetParent(hueco, false);
+            Vector3 tam = id == "sonda" ? new Vector3(0.8f, 0.9f, 1.2f) : new Vector3(0.75f, 0.7f, 1.1f);
+            Cubo("Caja", c, new Vector3(0f, tam.y / 2f, 0f), tam, mLote[id], false);
+            rotulosContenedor[id] = Rotulo("", c, new Vector3(0f, tam.y + 0.35f, 0f), 0.03f, Color.white);
+            contenedores[id] = c;
         }
 
         // ------------------------------------------------------------------ Representación de la selección
 
         void ActualizarVisual()
         {
-            if (Resumen == null || rotuloHolo == null) return;
+            if (Resumen == null || rotuloRevision == null) return;
             bool cerrada = ExpedicionActual.Confirmada;
+            if (Holo != null && !Holo.Animando) Holo.Actualizar();
 
-            // Holograma: módulos afectados por lo encargado, en amarillo
-            foreach (var kv in holoModulos)
+            // Si el carro lleva un contenedor que ya no corresponde a la selección, se descarga (vuelve a su estantería).
+            if (Carro.Lote != null)
             {
-                bool marcado = (kv.Key == "PR" && (Borrador.motor > 0 || Borrador.tanque > 0)) || (kv.Key == "CI" && Borrador.instrumento > 0)
-                               || (kv.Key == "CO" && Borrador.relevo > 0);
-                kv.Value.sharedMaterial = marcado ? mHoloMarcado : mHolo;
+                LoteCarga lc = Lotes.Find(x => x.id == Carro.Lote);
+                if (lc == null || lc.preparado || lc.firma != Carro.Firma) Carro.Vaciar();
             }
-            rotuloHolo.text = "EM-4X · EN ÓRBITA (holograma 1:15)\n" +
-                              $"{Resumen.motor.nombre} · {Resumen.tanque.nombre}\n" +
-                              $"combustible {Resumen.combustibleKg / 1000f:0.0} de {Resumen.capacidadKg / 1000f:0} t · Δv ≈ {Resumen.deltaVMS:0} m/s\n" +
-                              "amarillo = cambios encargados para la nave en órbita";
 
-            // Estanterías y zona de envío
-            foreach (string id in OrdenLotes)
+            for (int i = 0; i < LotesCarro.Length; i++)
             {
-                Transform caja = estanterias[id], envio = huecosEnvio[id];
-                for (int i = caja.childCount - 1; i >= 0; i--) Destroy(caja.GetChild(i).gameObject);
-                for (int i = envio.childCount - 1; i >= 0; i--) Destroy(envio.GetChild(i).gameObject);
+                string id = LotesCarro[i];
                 LoteCarga lo = Lotes.Find(x => x.id == id);
-                int idx = Array.IndexOf(OrdenLotes, id);
+                Transform c = contenedores[id];
                 if (lo == null)
                 {
-                    rotulosLote[id].text = NombresLotes[idx].ToUpper() + "\nno hace falta (0)";
+                    c.gameObject.SetActive(false);
+                    rotulosLote[id].text = NombresCarro[i].ToUpper() + "\nno hace falta (0)";
                     rotulosLote[id].color = new Color(0.7f, 0.7f, 0.7f);
                     continue;
                 }
-                rotulosLote[id].text = NombresLotes[idx].ToUpper() + $"\n{lo.detalle}\n" + (lo.preparado ? "PREPARADO · en la zona de envío" : "POR PREPARAR · E: preparar lote");
-                rotulosLote[id].color = lo.preparado ? new Color(0.5f, 1f, 0.55f) : new Color(1f, 0.8f, 0.4f);
-                int n = Mathf.Min(lo.cantidad, 10);
-                Transform destino = lo.preparado ? envio : caja;
-                for (int i = 0; i < n; i++)
+                c.gameObject.SetActive(true);
+                rotulosContenedor[id].text = $"{NombresCarro[i].ToUpper()} × {lo.cantidad}";
+                Transform destino = lo.preparado ? huecosEnvio[id] : Carro.Lote == id ? Carro.Bandeja : estanterias[id];
+                if (c.parent != destino)
                 {
-                    Vector3 s = id == "sonda" ? new Vector3(1f, 1f, 1.4f) : id == "combustible" ? new Vector3(0.5f, 0.6f, 0.5f) : new Vector3(0.55f, 0.5f, 0.55f);
-                    // Apoyadas: en la balda de abajo (0,34) o de arriba (1,64); en la zona de envío, sobre el suelo.
-                    Vector3 p = lo.preparado
-                        ? new Vector3((i % 3 - 1) * 0.7f, s.y / 2f + (i / 9) * (s.y + 0.02f), ((i / 3) % 3 - 1) * 0.7f)
-                        : new Vector3(0f, (i < 5 ? 0.34f : 1.64f) + s.y / 2f, id == "sonda" ? 0f : -1.6f + (i % 5) * 0.8f);
-                    Cubo(NombresLotes[idx], destino, p, s, mLote[id], false);
+                    c.SetParent(destino, false);
+                    c.localPosition = destino == estanterias[id] ? new Vector3(0f, 0.02f, 0f) : Vector3.zero;
+                    c.localRotation = Quaternion.identity;
                 }
+                string estado = lo.preparado ? "LISTO · en la zona de envío" : Carro.Lote == id ? "EN EL CARRO · llévalo a la zona de envío" : "POR PREPARAR · carga el contenedor en el carro (E)";
+                rotulosLote[id].text = NombresCarro[i].ToUpper() + "\n" + lo.detalle.Replace("\n", ", ") + "\n" + estado;
+                rotulosLote[id].color = lo.preparado ? new Color(0.5f, 1f, 0.55f) : new Color(1f, 0.8f, 0.4f);
             }
 
-            // Rótulos de revisión y embarque
+            LoteCarga comb = LoteCombustible;
+            bool combListo = comb == null || comb.preparado;
+            indicadorCombustible.sharedMaterial = combListo ? mVerde : mRojo;
+            rotuloCombustible.text = comb == null ? "COMBUSTIBLE · no se envía (0)" : comb.preparado ? "COMBUSTIBLE · LLENADO AUTORIZADO\n" + comb.detalle
+                                   : "COMBUSTIBLE · por autorizar\n" + comb.detalle + (AlimentacionVerificada ? "\nalimentación verificada" : "");
+            rotuloCombustible.color = combListo ? new Color(0.5f, 1f, 0.55f) : new Color(1f, 0.75f, 0.45f);
+
             int pendientes = 0; string falta = "";
             foreach (Requisito r in Requisitos()) if (!r.ok) { pendientes++; if (falta.Length == 0) falta = r.texto; }
             rotuloRevision.text = cerrada ? "PREPARACIÓN CERRADA" : "PREPARACIÓN ABIERTA";

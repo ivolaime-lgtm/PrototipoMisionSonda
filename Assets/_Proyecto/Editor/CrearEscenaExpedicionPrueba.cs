@@ -19,7 +19,7 @@ public static class CrearEscenaExpedicionPrueba
 {
     const string Ruta = "Assets/_Proyecto/Scenes/ExpedicionPrueba.unity";
 
-    [MenuItem("Prototipo/14. Crear escena ExpedicionPrueba (nave modular EM-4X)")]
+    [MenuItem("Prototipo/Arte y pruebas/Crear escenas de prueba/ExpedicionPrueba · nave modular EM-4X (antes 14)", false, 142)]
     public static void Crear()
     {
         if (File.Exists(Ruta))

@@ -34,7 +34,7 @@ public static class AmpliarNave
     const string NombreRaiz = "NAVE_AMPLIADA";
     const string Materiales = "Assets/_Proyecto/Materials/";
 
-    [MenuItem("Prototipo/9. Ampliar nave (4 sectores y pasillo)")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/9. Ampliar nave (4 sectores y pasillo)", false, 1008)]
     public static void Ampliar()
     {
         if (!Comprobar(out Scene escena, out Transform cabina, out ControlNave control)) return;
@@ -168,7 +168,7 @@ public static class AmpliarNave
                   "(o cierra la escena sin guardar para descartar). Para volver: Prototipo → 10.");
     }
 
-    [MenuItem("Prototipo/10. Volver a la cabina original")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/10. Volver a la cabina original", false, 1009)]
     public static void Volver()
     {
         if (!Comprobar(out Scene escena, out _, out _)) return;

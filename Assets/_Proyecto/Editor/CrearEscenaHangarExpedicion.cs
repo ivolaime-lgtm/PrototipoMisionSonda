@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// HERRAMIENTA DE EDITOR — hangar terrestre jugable.
 ///
-/// "Prototipo → 22. Hangar terrestre: crear o abrir la escena HangarExpedicion"
+/// "Prototipo → Juego → 1. Hangar terrestre: crear o abrir HangarExpedicion (ENTRADA del juego)" (antes menú 22)
 ///   - Si la escena NO existe: crea Assets/_Proyecto/Scenes/HangarExpedicion.unity con un objeto «HangarTerrestre»
 ///     (el hangar se construye al pulsar Play) y le asigna el catálogo y los materiales del MVP si existen.
 ///   - Si YA existe: solo la abre (nunca la sustituye).
@@ -18,7 +18,7 @@ public static class CrearEscenaHangarExpedicion
 {
     const string Ruta = CargadorEscenas.Hangar;
 
-    [MenuItem("Prototipo/22. Hangar terrestre: crear o abrir la escena HangarExpedicion")]
+    [MenuItem("Prototipo/Juego/1. Hangar terrestre: crear o abrir HangarExpedicion (ENTRADA del juego)", false, 1)]
     public static void CrearOAbrir()
     {
         if (EditorApplication.isPlaying)

@@ -37,7 +37,7 @@ public static class ConstructorCentroOperaciones
     static readonly Vector3 PosicionCamara = new Vector3(-7f, 3.5f, -26f);
     static readonly Vector3 PuntoMira = new Vector3(5f, 0f, 20f);
 
-    [MenuItem("Prototipo/6. Crear centro de operaciones")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/6. Crear centro de operaciones", false, 1005)]
     public static void Crear()
     {
         if (File.Exists(RutaEscena) &&

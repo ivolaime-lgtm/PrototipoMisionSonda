@@ -23,7 +23,7 @@ public static class ConstructorConfiguracion
     const string RutaConfiguracion = Raiz + "/Scenes/Configuracion.unity";
     const string RutaExploracion = Raiz + "/Scenes/Exploracion.unity";
 
-    [MenuItem("Prototipo/2. Crear escena de configuración")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/2. Crear escena de configuración", false, 1001)]
     public static void CrearEscenaConfiguracion()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -62,7 +62,7 @@ public static class ConstructorConfiguracion
                   ". Siguiente paso: menú Prototipo → 3. Conectar configuración a Exploracion.");
     }
 
-    [MenuItem("Prototipo/3. Conectar configuración a Exploracion")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/3. Conectar configuración a Exploracion", false, 1002)]
     public static void ConectarExploracion()
     {
         if (!File.Exists(RutaExploracion))

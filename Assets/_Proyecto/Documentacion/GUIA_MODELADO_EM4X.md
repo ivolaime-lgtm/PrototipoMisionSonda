@@ -2,6 +2,8 @@
 
 13-11-2026 · Las medidas de esta guía se han **leído del código actual** (`Scripts/Expedicion/NaveModular.cs` y `Scripts/Circulacion/DatosCirculacion.cs`). No son propuestas antiguas. Si el código cambia, esta guía se regenera.
 
+> **Menús renombrados (13-11-2026, solo cambia la ruta):** 19 → *Prototipo → Arte y pruebas → 1. Preparar carpetas de arte*; 20 → *Arte y pruebas → 2. Crear escena ModeloPrueba*; 21 → *Arte y pruebas → 3. Comprobar recursos de arte*; para abrir la escena de importación: *Arte y pruebas → 4. Abrir ModeloPrueba*. 16 → *Juego → 2. Crear escena ExpedicionMVP*. Los menús antiguos 8 y «Muestra visual» están en *Prototipos antiguos*.
+
 ## 1. Estado de lo que se modela
 
 - **Aceptado por el equipo:** aspecto general, tamaño y distribución de la EM-4X.

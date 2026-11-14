@@ -29,7 +29,7 @@ public static class AcabadoCabina
 {
     const string NombreRaiz = "ACABADO_CABINA_PILOTAJE";
 
-    [MenuItem("Prototipo/11. Acabado: cabina de pilotaje (aplicar)")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/11. Acabado: cabina de pilotaje (aplicar)", false, 1010)]
     public static void Aplicar()
     {
         if (!Comprobar(out Scene escena)) return;
@@ -109,7 +109,7 @@ public static class AcabadoCabina
         Debug.Log("[Prototipo] Acabado de la cabina de pilotaje aplicado. Revisa y pulsa Ctrl+S (o cierra sin guardar para descartar).");
     }
 
-    [MenuItem("Prototipo/11. Acabado: cabina de pilotaje (quitar)")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/11. Acabado: cabina de pilotaje (quitar)", false, 1011)]
     public static void Quitar()
     {
         if (!Comprobar(out Scene escena)) return;

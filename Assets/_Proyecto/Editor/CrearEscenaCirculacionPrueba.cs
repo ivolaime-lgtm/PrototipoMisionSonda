@@ -19,7 +19,7 @@ public static class CrearEscenaCirculacionPrueba
 {
     const string Ruta = "Assets/_Proyecto/Scenes/CirculacionPrueba.unity";
 
-    [MenuItem("Prototipo/15. Crear escena CirculacionPrueba (personaje, pasadizos y puertas)")]
+    [MenuItem("Prototipo/Arte y pruebas/Crear escenas de prueba/CirculacionPrueba · personaje y puertas (antes 15)", false, 143)]
     public static void Crear()
     {
         if (File.Exists(Ruta))

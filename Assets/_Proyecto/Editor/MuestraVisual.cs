@@ -38,7 +38,7 @@ public static class MuestraVisual
 
     // ======================================================================== Menús
 
-    [MenuItem("Prototipo/Muestra visual/1. Aplicar: sector delantero de la nave")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/Muestra visual/1. Aplicar: sector delantero de la nave", false, 1012)]
     public static void AplicarNave()
     {
         if (!Comprobar()) return;
@@ -138,7 +138,7 @@ public static class MuestraVisual
                   "(o cierra la escena sin guardar para descartarla).");
     }
 
-    [MenuItem("Prototipo/Muestra visual/1. Quitar: sector delantero de la nave")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/Muestra visual/1. Quitar: sector delantero de la nave", false, 1013)]
     public static void QuitarNave()
     {
         if (!Comprobar()) return;

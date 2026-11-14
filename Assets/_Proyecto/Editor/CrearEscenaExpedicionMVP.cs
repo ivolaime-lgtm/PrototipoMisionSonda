@@ -9,18 +9,22 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// HERRAMIENTAS DE EDITOR (no forman parte del juego) — MVP de la expedición.
 ///
-/// "Prototipo → 16. Crear escena ExpedicionMVP (juego completo)":
+/// "Prototipo → Juego → 2. Crear escena ExpedicionMVP" (antes 16):
 ///   - Crea la escena NUEVA Assets/_Proyecto/Scenes/ExpedicionMVP.unity con un único objeto «JuegoMVP» (todo lo demás se
 ///     construye al pulsar Play). Si ya existe, NO la sustituye. No abre ni modifica ninguna otra escena.
 ///   - Crea tres materiales en Materials/MVP para que el ejecutable incluya los sombreadores que se usan al construir.
 ///   - NO toca la lista de escenas del build ni los paquetes.
 ///
-/// "Prototipo → 17. Preparar el ejecutable del MVP (lista de escenas)":
-///   - Paso EXPLÍCITO: pone ExpedicionMVP como PRIMERA escena del build (escena de entrada) y conserva las demás detrás,
-///     tal como estaban. Guarda la lista anterior en CopiasSeguridad/ por si hay que restaurarla.
+/// "Prototipo → Juego → 5. Preparar la lista de escenas del build (Hangar + MVP)" (antes 17):
+///   - Paso EXPLÍCITO: pone HangarExpedicion (entrada) y ExpedicionMVP como primeras escenas del build y conserva las
+///     demás detrás, tal como estaban. Guarda la lista anterior en CopiasSeguridad/ por si hay que restaurarla.
 ///
-/// "Prototipo → 18. Generar el ejecutable del MVP (Windows)":
-///   - Compila SOLO la escena ExpedicionMVP en la carpeta Ejecutable/ del proyecto. No cambia la lista de escenas.
+/// "Prototipo → Juego → 6. Generar el ejecutable completo (Windows)" (antes 18):
+///   - Compila con SU PROPIA lista (EscenasJuego): HangarExpedicion (entrada) y ExpedicionMVP, las únicas que se cargan
+///     durante la partida (CargadorEscenas.Hangar y CargadorEscenas.Expedicion). Ninguna escena de pruebas.
+///     No cambia la lista de escenas del editor. Salida: Ejecutable/ExpedicionEM4X_Completo/.
+///   - La configuración anterior (solo ExpedicionMVP → Ejecutable/ExpedicionEM4X/) se conserva en el menú
+///     «Juego → 7. Ejecutable anterior: solo ExpedicionMVP» y se describe en CopiasSeguridad/ConfiguracionEjecutable_anterior.txt.
 /// </summary>
 public static class CrearEscenaExpedicionMVP
 {
@@ -51,7 +55,7 @@ public static class CrearEscenaExpedicionMVP
         return m;
     }
 
-    [MenuItem("Prototipo/16. Crear escena ExpedicionMVP (juego completo)")]
+    [MenuItem("Prototipo/Juego/2. Crear escena ExpedicionMVP (antes 16)", false, 2)]
     public static void Crear()
     {
         if (File.Exists(Ruta))
@@ -85,7 +89,7 @@ public static class CrearEscenaExpedicionMVP
         so.FindProperty("materialConLuz").objectReferenceValue = conLuz;
         so.FindProperty("materialSinLuz").objectReferenceValue = sinLuz;
         so.FindProperty("materialTransparente").objectReferenceValue = transparente;
-        // Tabla de modelos (opcional): si existe se asigna; si no, todo provisional (menú 19 la crea).
+        // Tabla de modelos (opcional): si existe se asigna; si no, todo provisional (la crea «Arte y pruebas → 1»).
         so.FindProperty("recursosVisuales").objectReferenceValue = AssetDatabase.LoadAssetAtPath<RecursosVisualesEM4X>("Assets/_Proyecto/Data/RecursosVisualesEM4X.asset");
         so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -95,63 +99,112 @@ public static class CrearEscenaExpedicionMVP
             Debug.LogError("[MVP] No se pudo guardar la escena en " + Ruta + ".");
     }
 
-    [MenuItem("Prototipo/17. Preparar el ejecutable del MVP (lista de escenas)")]
+    /// <summary>Escenas que se cargan durante la partida, en orden (la primera es la entrada del ejecutable).</summary>
+    public static readonly string[] EscenasJuego = { CargadorEscenas.Hangar, CargadorEscenas.Expedicion };
+    const string SalidaCompleta = "Ejecutable/ExpedicionEM4X_Completo/ExpedicionEM4X.exe";
+    const string SalidaAnterior = "Ejecutable/ExpedicionEM4X/ExpedicionEM4X.exe";
+
+    static bool FaltanEscenas()
+    {
+        string faltan = "";
+        foreach (string e in EscenasJuego) if (!File.Exists(e)) faltan += "\n· " + e;
+        if (faltan.Length == 0) return false;
+        EditorUtility.DisplayDialog("Faltan escenas del juego", "No existen:" + faltan +
+            "\n\nCréalas con «Prototipo → Juego → 1» (HangarExpedicion) y «Prototipo → Juego → 2» (ExpedicionMVP).", "Aceptar");
+        return true;
+    }
+
+    /// <summary>Guarda (una sola vez) la descripción de la configuración anterior del ejecutable.</summary>
+    static void GuardarConfiguracionAnterior()
+    {
+        const string ruta = "CopiasSeguridad/ConfiguracionEjecutable_anterior.txt";
+        if (File.Exists(ruta)) return;
+        Directory.CreateDirectory("CopiasSeguridad");
+        File.WriteAllText(ruta,
+            "Configuración del ejecutable ANTERIOR al hangar terrestre (menú «18. Generar el ejecutable del MVP»):\n" +
+            "  escenas: " + Ruta + " (solo esa; entrada directa al MVP)\n" +
+            "  salida:  " + SalidaAnterior + "\n" +
+            "  destino: StandaloneWindows64, BuildOptions.None\n" +
+            "Se puede volver a generar con «Prototipo → Juego → 7. Ejecutable anterior: solo ExpedicionMVP».\n" +
+            "Guardado el " + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm") + ".\n");
+    }
+
+    [MenuItem("Prototipo/Juego/5. Preparar la lista de escenas del build (Hangar + MVP)", false, 20)]
     public static void PrepararLista()
     {
-        if (!File.Exists(Ruta))
-        {
-            EditorUtility.DisplayDialog("Falta la escena", "Crea antes la escena con el menú 16.", "Aceptar");
-            return;
-        }
+        if (FaltanEscenas()) return;
         List<EditorBuildSettingsScene> actual = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
         string listado = "";
         foreach (EditorBuildSettingsScene s in actual) listado += (s.enabled ? "[x] " : "[ ] ") + s.path + "\n";
-        if (actual.Count > 0 && actual[0].path == Ruta && actual[0].enabled)
+        bool yaEsta = actual.Count >= EscenasJuego.Length;
+        for (int i = 0; yaEsta && i < EscenasJuego.Length; i++) yaEsta = actual[i].path == EscenasJuego[i] && actual[i].enabled;
+        if (yaEsta)
         {
-            EditorUtility.DisplayDialog("Ya está preparada", "ExpedicionMVP ya es la primera escena del build:\n\n" + listado, "Aceptar");
+            EditorUtility.DisplayDialog("Ya está preparada", "HangarExpedicion (entrada) y ExpedicionMVP ya son las primeras escenas del build:\n\n" + listado, "Aceptar");
             return;
         }
+        string copia = $"CopiasSeguridad/ListaEscenasBuild_antes_hangar_{System.DateTime.Now:yyyyMMdd_HHmmss}.txt";
         if (!EditorUtility.DisplayDialog("Preparar la lista de escenas del build",
-                "Se pondrá ExpedicionMVP como PRIMERA escena (escena de entrada del ejecutable). Las demás se conservan detrás, igual que ahora:\n\n" +
-                listado + "\nLa lista actual se guarda en CopiasSeguridad/ListaEscenasBuild_antes_MVP.txt.", "Cambiar la lista", "Cancelar"))
+                "Se pondrán HangarExpedicion (ENTRADA) y ExpedicionMVP como primeras escenas, activadas. Las demás se conservan detrás, igual que ahora:\n\n" +
+                listado + "\nLa lista actual se guarda en " + copia + ".\n(El menú 6 usa su propia lista y no depende de esta.)", "Cambiar la lista", "Cancelar"))
             return;
 
         Directory.CreateDirectory("CopiasSeguridad");
-        File.WriteAllText("CopiasSeguridad/ListaEscenasBuild_antes_MVP.txt", listado);
-        List<EditorBuildSettingsScene> nueva = new List<EditorBuildSettingsScene> { new EditorBuildSettingsScene(Ruta, true) };
-        foreach (EditorBuildSettingsScene s in actual) if (s.path != Ruta) nueva.Add(s);
+        File.WriteAllText(copia, listado);
+        List<EditorBuildSettingsScene> nueva = new List<EditorBuildSettingsScene>();
+        foreach (string e in EscenasJuego) nueva.Add(new EditorBuildSettingsScene(e, true));
+        foreach (EditorBuildSettingsScene s in actual) if (System.Array.IndexOf(EscenasJuego, s.path) < 0) nueva.Add(s);
         EditorBuildSettings.scenes = nueva.ToArray();
-        Debug.Log("[MVP] Lista de escenas del build actualizada: ExpedicionMVP es la escena de entrada. Lista anterior guardada en CopiasSeguridad/.");
+        Debug.Log("[Juego] Lista de escenas del build actualizada: HangarExpedicion es la entrada, después ExpedicionMVP. Lista anterior en " + copia + ".");
     }
 
-    [MenuItem("Prototipo/18. Generar el ejecutable del MVP (Windows)")]
+    [MenuItem("Prototipo/Juego/6. Generar el ejecutable completo (Windows)", false, 21)]
     public static void Generar()
+    {
+        if (FaltanEscenas()) return;
+        if (!EditorUtility.DisplayDialog("Generar el ejecutable completo",
+                "Se compilarán, con su propia lista, las escenas que se cargan durante la partida:\n" +
+                "  1. HangarExpedicion (entrada)\n  2. ExpedicionMVP\n" +
+                "para Windows en " + SalidaCompleta + ". Ninguna escena de pruebas.\n" +
+                "No se cambia la lista de escenas del editor ni el ejecutable anterior (Ejecutable/ExpedicionEM4X/). Puede tardar varios minutos.", "Generar", "Cancelar"))
+            return;
+        GuardarConfiguracionAnterior();
+        Compilar(EscenasJuego, SalidaCompleta);
+    }
+
+    [MenuItem("Prototipo/Juego/7. Ejecutable anterior: solo ExpedicionMVP (sin hangar)", false, 22)]
+    public static void GenerarAnterior()
     {
         if (!File.Exists(Ruta))
         {
-            EditorUtility.DisplayDialog("Falta la escena", "Crea antes la escena con el menú 16.", "Aceptar");
+            EditorUtility.DisplayDialog("Falta la escena", "Crea antes la escena con «Prototipo → Juego → 2. Crear escena ExpedicionMVP».", "Aceptar");
             return;
         }
-        if (!EditorUtility.DisplayDialog("Generar el ejecutable",
-                "Se compilará SOLO la escena ExpedicionMVP para Windows en la carpeta Ejecutable/ExpedicionEM4X/ del proyecto.\n" +
-                "No se cambia la lista de escenas del build. Puede tardar varios minutos.", "Generar", "Cancelar"))
+        if (!EditorUtility.DisplayDialog("Generar el ejecutable anterior",
+                "Configuración ANTERIOR: se compilará SOLO ExpedicionMVP (sin hangar) en " + SalidaAnterior + ".\n" +
+                "Sirve para probar el MVP por separado. Puede tardar varios minutos.", "Generar", "Cancelar"))
             return;
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        GuardarConfiguracionAnterior();
+        Compilar(new[] { Ruta }, SalidaAnterior);
+    }
 
+    static void Compilar(string[] escenas, string salida)
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
         BuildPlayerOptions opciones = new BuildPlayerOptions
         {
-            scenes = new[] { Ruta },
-            locationPathName = "Ejecutable/ExpedicionEM4X/ExpedicionEM4X.exe",
+            scenes = escenas,
+            locationPathName = salida,
             target = BuildTarget.StandaloneWindows64,
             options = BuildOptions.None
         };
         UnityEditor.Build.Reporting.BuildReport informe = BuildPipeline.BuildPlayer(opciones);
         if (informe.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
         {
-            Debug.Log("[MVP] Ejecutable generado en Ejecutable/ExpedicionEM4X/ (" + informe.summary.totalSize / (1024 * 1024) + " MB).");
-            EditorUtility.RevealInFinder("Ejecutable/ExpedicionEM4X/ExpedicionEM4X.exe");
+            Debug.Log("[Juego] Ejecutable generado en " + salida + " (" + informe.summary.totalSize / (1024 * 1024) + " MB) con: " + string.Join(", ", escenas));
+            EditorUtility.RevealInFinder(salida);
         }
         else
-            Debug.LogError("[MVP] No se pudo generar el ejecutable: " + informe.summary.result + " (" + informe.summary.totalErrors + " errores). Mira la consola.");
+            Debug.LogError("[Juego] No se pudo generar el ejecutable: " + informe.summary.result + " (" + informe.summary.totalErrors + " errores). Mira la consola.");
     }
 }

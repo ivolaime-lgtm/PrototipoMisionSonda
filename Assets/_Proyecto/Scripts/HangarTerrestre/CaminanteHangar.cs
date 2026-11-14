@@ -19,6 +19,8 @@ namespace PrototipoMision
         public Camera Camara { get; private set; }
         /// <summary>Lo decide el hangar: falso con una terminal abierta o con el cursor libre.</summary>
         public bool Control { get; set; } = true;
+        /// <summary>Multiplica la velocidad (por ejemplo, más despacio empujando el carro).</summary>
+        public float FactorVelocidad { get; set; } = 1f;
 
         CharacterController cc;
         float pitch, vy;
@@ -74,7 +76,7 @@ namespace PrototipoMision
                 if (k.dKey.isPressed) entrada.x += 1f;
                 if (k.aKey.isPressed) entrada.x -= 1f;
                 if (entrada.sqrMagnitude > 1f) entrada.Normalize();
-                float v = k.leftShiftKey.isPressed ? velocidadCarrera : velocidad;
+                float v = (k.leftShiftKey.isPressed ? velocidadCarrera : velocidad) * FactorVelocidad;
                 mov = transform.TransformDirection(entrada) * v;
             }
             // Gravedad terrestre: pegado al suelo.

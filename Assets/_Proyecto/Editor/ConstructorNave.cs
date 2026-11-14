@@ -24,7 +24,7 @@ public static class ConstructorNave
     const string RutaCatalogoNave = Raiz + "/Data/CatalogoNave.asset";
     const string RutaCatalogoMision = Raiz + "/Data/CatalogoMision.asset";
 
-    [MenuItem("Prototipo/8. Crear escena Nave")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/8. Crear escena Nave", false, 1007)]
     public static void Crear()
     {
         if (File.Exists(RutaEscena) &&

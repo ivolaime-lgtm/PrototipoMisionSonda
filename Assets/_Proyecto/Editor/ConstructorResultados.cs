@@ -22,7 +22,7 @@ public static class ConstructorResultados
     const string RutaExploracion = Raiz + "/Scenes/Exploracion.unity";
     const string RutaCatalogo = Raiz + "/Data/CatalogoMision.asset";
 
-    [MenuItem("Prototipo/5. Crear resultados y conectar Exploracion")]
+    [MenuItem("Prototipo/Prototipos antiguos (no usar sin copia)/5. Crear resultados y conectar Exploracion", false, 1004)]
     public static void Crear()
     {
         if (!File.Exists(RutaExploracion))

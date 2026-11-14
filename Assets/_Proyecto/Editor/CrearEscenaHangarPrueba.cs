@@ -20,7 +20,7 @@ public static class CrearEscenaHangarPrueba
     const string Raiz = "Assets/_Proyecto";
     const string Ruta = Raiz + "/Scenes/HangarPrueba.unity";
 
-    [MenuItem("Prototipo/13. Crear escena HangarPrueba (nave base y bloque interior)")]
+    [MenuItem("Prototipo/Arte y pruebas/Crear escenas de prueba/HangarPrueba · nave base (antes 13)", false, 141)]
     public static void Crear()
     {
         if (File.Exists(Ruta))

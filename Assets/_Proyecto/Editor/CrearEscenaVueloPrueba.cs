@@ -20,7 +20,7 @@ public static class CrearEscenaVueloPrueba
     const string Raiz = "Assets/_Proyecto";
     const string Ruta = Raiz + "/Scenes/VueloPrueba.unity";
 
-    [MenuItem("Prototipo/12. Crear escena VueloPrueba (vuelo 3D V1)")]
+    [MenuItem("Prototipo/Arte y pruebas/Crear escenas de prueba/VueloPrueba · vuelo 3D V1 (antes 12)", false, 140)]
     public static void Crear()
     {
         if (File.Exists(Ruta))

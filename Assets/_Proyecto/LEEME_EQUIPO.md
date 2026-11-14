@@ -1,5 +1,12 @@
 # Prototipo de misión — guía rápida del equipo
 
+> **ENTRADA DEL EQUIPO (13-11-2026)**
+> - **Para jugar:** menú *Prototipo → Juego → 3. Abrir HangarExpedicion (JUGAR)* → Play. Es la entrada del juego; al embarcar se pasa sola a ExpedicionMVP.
+> - **MVP sin hangar (pruebas):** *Prototipo → Juego → 4. Abrir ExpedicionMVP*.
+> - **Para importar modelos:** *Prototipo → Arte y pruebas → 4. Abrir ModeloPrueba (IMPORTAR MODELOS)* (si aún no existe: *Arte y pruebas → 2. Crear escena ModeloPrueba*).
+> - **Ejecutable:** *Prototipo → Juego → 6. Generar el ejecutable completo (Windows)*.
+> - Los menús se reorganizaron: la tabla de equivalencias (números antiguos → nuevos) está en «Escenas del proyecto y menú Prototipo», al final.
+
 Nombre del proyecto provisional: `PrototipoMisionSonda`.
 Motor: Unity 6.3 LTS (6000.3.28f1) · URP · Windows · Input System (New).
 
@@ -922,3 +929,67 @@ Copia previa: `CopiasSeguridad/Copia_antes_hangar_terrestre_2026-11-13.zip` (Bal
 **Cambio de escena sin tocar la lista del build:** en el editor se carga por ruta. En un ejecutable hará falta añadir HangarExpedicion y ExpedicionMVP a la lista; si faltan, el juego lo dice en pantalla en lugar de fallar.
 
 **No incluido en esta versión:** lanzadera detallada, despegue, grúas, cajas con física, vuelos de carga y modelos del equipo de arte.
+
+## Preparación dinámica: alternativas, holograma, carro, combustible y despegue (13-11-2026)
+
+Sobre el hangar validado (AD1–AD12, copia `CopiasSeguridad/Copia_funcional_hangar_validado_2026-11-13.zip`). No cambia la EM-4X, el vuelo, la gravedad ni el balance de vuelo. Estado: **escrito y revisado por lectura; sin compilar ni ejecutar en Unity.** Pruebas: sección AE de `PRUEBAS_ACEPTACION.md`.
+
+### Tres alternativas por pieza (valores efectivos de la EM-4X · DEMOSTRACIÓN)
+Los catálogos originales (`CatalogoNave`, `CatalogoMision`) no se tocan; las alternativas se definen en `BalanceEM4X`. Presupuesto (100 M) y tarifas (transporte 10 M, instalación 3 M por componente, tripulación 18 M) sin cambios.
+
+| Pieza | Alternativa | Datos | Precio |
+|---|---|---|---|
+| Motor | Estándar (instalado) | 400 kN · 100 kg/s · 3000 kg | 0 |
+| Motor | Alto empuje | 560 kN · 155 kg/s · 3600 kg | del catálogo (8 M si falta) |
+| Motor | **Alta eficiencia (nuevo)** | 280 kN · 56 kg/s · 3400 kg | 10 M |
+| Tanque | Estándar (instalado) | 24 000 kg · 2500 kg vacío | 0 |
+| Tanque | Ampliado | 36 000 kg · 3600 kg vacío | del catálogo (6 M si falta) |
+| Tanque | **Ligero (nuevo)** | 15 000 kg · 1500 kg vacío · máx. 3 tramos | 3 M |
+| Instrumento | Cámara multiespectral / Espectrómetro | los del catálogo, sin cambios | catálogo |
+| Instrumento | **Sensor de diagnóstico (nuevo)** | 10 W×factor · 40 MB · captura 6 s · valor 3 · 12 kg | 10 M |
+
+El sensor de diagnóstico es recomendado (×2) en la inspección del satélite K-2 además del espectrómetro; en las otras misiones vale ×1 y aparece el aviso. Las incompatibilidades (por ejemplo, el tanque ligero limita los tramos de combustible, o un instrumento cuyos datos no caben) se muestran como aviso o problema antes de encargar.
+
+### Holograma interactivo (estación 2, centro del hangar)
+E delante de la mesa → vista propia del holograma (botón derecho + arrastrar o flechas: girar; rueda fuera del panel: acercar; Esc: salir). Pestañas MOTOR / TANQUE / INSTRUMENTO resaltan la pieza; la lista muestra sus tres alternativas con datos, utilidad y advertencias. Pulsar una alternativa la **previsualiza** con geometría provisional y una animación de separación y encaje (no cambia nada); la comparación muestra coste, Δv, aceleración, masa y combustible frente a la actual. «ENCARGAR ESTE CAMBIO» aplica el mismo cambio que la terminal 2. Es una previsualización: la EM-4X sigue en órbita. Distribución y medidas de los módulos, sin cambios (escala 1:15 de `NaveModular`).
+
+### Carga con carro (reutilizable) y puesto de combustible
+- Cuatro lotes, un contenedor cada uno: suministros, kits, sonda y componentes de sustitución (solo si su cantidad es mayor que 0).
+- Carro junto a las estanterías (base en x −12, z 24): E en el asa para empujarlo; delante de una estantería, E fija el contenedor al carro; E en otro sitio lo suelta. Al entrar en la zona amarilla de envío el lote queda **LISTO** y el contenedor se coloca allí.
+- No crea carga ni cobra: confirma lo presupuestado. Si cambias la selección, solo el lote afectado vuelve a su estantería (también si iba en el carro).
+- **R** devuelve el carro a su base, vacío (si se atasca o se pierde).
+- **Puesto 3b · Combustible** (derecha, z 30): 1) verificar alimentación, 2) autorizar el llenado de los tramos ya presupuestados. Marca el lote de combustible como preparado; sin él no se puede embarcar.
+
+### Despegue (lanzadera L-4, terrestre, no pilotable)
+Al embarcar con todo listo: acceso por la pasarela, vista desde el asiento, cierre de compuerta, comprobación, cuenta atrás, encendido y ascenso, fundido y llegada al interior de la EM-4X (orbital). Tras verla una vez en la sesión, **Espacio o Intro** la omiten: omitirla solo acorta la animación (los requisitos ya se comprobaron, la preparación confirmada y los costes no cambian). Si la escena no se pudo abrir, se vuelve al hangar sin embarque pendiente.
+
+### Archivos
+Nuevos: `Scripts/HangarTerrestre/HologramaInteractivo.cs`, `CarroCarga.cs`, `SecuenciaDespegue.cs`, `Editor/MenuEscenas.cs`.
+Modificados: `HangarTerrestre.cs`, `HudHangarTerrestre.cs`, `CaminanteHangar.cs` (factor de velocidad), `MVP/BalanceEM4X.cs` (alternativas, `Variante`, `Recomendado`, embarque con despegue), `MVP/HudMVP.cs` (lista de instrumentos y texto de llegada), `Editor/CrearEscenaExpedicionMVP.cs` (ejecutable), rutas de menú en todos los `Editor/*.cs`.
+
+## Escenas del proyecto y menú Prototipo (13-11-2026)
+
+Revisado: escenas en `Assets/_Proyecto/Scenes`, rutas en código (`CargadorEscenas`, constantes `Ruta…` de los menús, `PruebaHangar` → Configuracion, flujo antiguo con `SceneManager.LoadScene` por nombre), menús de creación y apertura y la lista del build. **Las escenas no se han movido**: muchos menús de creación usan rutas fijas y moverlas podría hacer que un menú creara una escena duplicada. La clasificación es por menú y documentación.
+
+| Grupo | Escenas | Uso |
+|---|---|---|
+| **Juego** | `HangarExpedicion` (ENTRADA), `ExpedicionMVP` | Las únicas que se cargan durante la partida. |
+| **Arte y pruebas** | `ModeloPrueba` (importar modelos; se crea con su menú), `VueloPrueba` (regresión del vuelo), `CirculacionPrueba`, `ExpedicionPrueba`, `HangarPrueba` | Pruebas útiles; no van al ejecutable. |
+| **Prototipos antiguos** | `CentroOperaciones`, `Configuracion`, `Nave`, `Exploracion`, `Resultados` | Flujo anterior. Se conservan; no usar sus menús sin copia. |
+
+**Candidatas a eliminación (solo para revisar; no se ha borrado nada):** `Assets/Scenes/SampleScene.unity` (plantilla, desactivada en el build), `Assets/Prueba.cs` (script suelto de pruebas), y las escenas del grupo «Prototipos antiguos» cuando el equipo decida que ya no se necesitan como referencia.
+
+**Ejecutable:** *Juego → 6* compila con su propia lista: HangarExpedicion (entrada) + ExpedicionMVP, en `Ejecutable/ExpedicionEM4X_Completo/`. *Juego → 7* conserva la configuración anterior (solo ExpedicionMVP, `Ejecutable/ExpedicionEM4X/`), descrita en `CopiasSeguridad/ConfiguracionEjecutable_anterior.txt`. *Juego → 5* (opcional) pone esas dos escenas al principio de la lista del editor y guarda la lista anterior en `CopiasSeguridad/ListaEscenasBuild_antes_hangar_<fecha>.txt`.
+
+| Antes | Ahora |
+|---|---|
+| 22 | Juego → 1. Hangar terrestre: crear o abrir HangarExpedicion |
+| 16 | Juego → 2. Crear escena ExpedicionMVP |
+| — | Juego → 3 / 4. Abrir HangarExpedicion / ExpedicionMVP |
+| 17 | Juego → 5. Preparar la lista de escenas del build |
+| 18 | Juego → 6. Generar el ejecutable completo (y 7: el anterior) |
+| 19, 20, 21 | Arte y pruebas → 1, 2, 3 |
+| — | Arte y pruebas → 4. Abrir ModeloPrueba; Abrir escenas de prueba/… |
+| 12, 13, 14, 15 | Arte y pruebas → Crear escenas de prueba/… |
+| 1–11 y Muestra visual | Prototipos antiguos (no usar sin copia)/… (mismos nombres y números) |
+

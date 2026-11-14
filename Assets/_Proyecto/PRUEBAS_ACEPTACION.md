@@ -603,17 +603,79 @@ En `CirculacionPrueba`, Play:
 
 ## AD. Hangar terrestre (escena HangarExpedicion) — 13-11-2026
 
-**Estado: NINGUNA SUPERADA. Escrito y leído; no compilado ni ejecutado por quien lo escribió.**
+**Estado: AD1–AD12 SUPERADAS — confirmadas por el usuario el 13-11-2026 en Unity, sobre la versión guardada en `CopiasSeguridad/Copia_funcional_hangar_validado_2026-11-13.zip`.** Los cambios posteriores (sección AE) necesitan pruebas nuevas.
 
-- [ ] AD1. Compila. El menú 22 crea la escena; si se repite, solo la abre.
-- [ ] AD2. Play: se camina por el suelo con WASD y ratón, sin atravesar paredes, terminales ni estanterías. Los controles se ven en pantalla.
-- [ ] AD3. Al acercarse a cada estación aparece su nombre y «E: usar» o «E: preparar».
-- [ ] AD4. Terminal abierta: cursor libre, personaje quieto. Esc o «Cerrar» devuelven el control. Esc fuera de una terminal libera el cursor; Esc o clic lo recuperan.
-- [ ] AD5. Misión: se ven las tres con objetivo y requisitos; al seleccionar una queda marcada y aparece arriba.
-- [ ] AD6. Configuración: cambiar motor, tanque, instrumento, relevo o combustible actualiza los valores, el presupuesto y el holograma (módulos en amarillo).
-- [ ] AD7. Carga: subir y bajar suministros o kits cambia las cajas de la estantería. E en la estantería las lleva a la zona de envío. Al cambiar una cantidad, solo ese lote vuelve a la estantería. No se pueden pasar los máximos.
-- [ ] AD8. Revisión: la lista coincide con lo que falta. Con un problema (por ejemplo, la misión 3 sin sonda) no se puede cerrar. Cerrar bloquea los cambios y reabrir conserva las selecciones.
-- [ ] AD9. Embarque: con algo pendiente explica qué falta; con todo listo, «Confirmar la salida y embarcar» abre ExpedicionMVP directamente en los mensajes de transición, sin portada ni otra preparación.
-- [ ] AD10. En la misión, la configuración (motor, tanque, instrumento, combustible, kits, suministros, sonda) es exactamente la del hangar, y el presupuesto de los resultados coincide.
-- [ ] AD11. Al terminar, «Volver al hangar terrestre» lleva al hangar con las selecciones conservadas y la carga por preparar.
-- [ ] AD12. Abrir ExpedicionMVP directamente sigue mostrando la portada y su preparación de siempre.
+- [x] AD1. Compila. El menú 22 crea la escena; si se repite, solo la abre.
+- [x] AD2. Play: se camina por el suelo con WASD y ratón, sin atravesar paredes, terminales ni estanterías. Los controles se ven en pantalla.
+- [x] AD3. Al acercarse a cada estación aparece su nombre y «E: usar» o «E: preparar».
+- [x] AD4. Terminal abierta: cursor libre, personaje quieto. Esc o «Cerrar» devuelven el control. Esc fuera de una terminal libera el cursor; Esc o clic lo recuperan.
+- [x] AD5. Misión: se ven las tres con objetivo y requisitos; al seleccionar una queda marcada y aparece arriba.
+- [x] AD6. Configuración: cambiar motor, tanque, instrumento, relevo o combustible actualiza los valores, el presupuesto y el holograma (módulos en amarillo).
+- [x] AD7. Carga: subir y bajar suministros o kits cambia las cajas de la estantería. E en la estantería las lleva a la zona de envío. Al cambiar una cantidad, solo ese lote vuelve a la estantería. No se pueden pasar los máximos.
+- [x] AD8. Revisión: la lista coincide con lo que falta. Con un problema (por ejemplo, la misión 3 sin sonda) no se puede cerrar. Cerrar bloquea los cambios y reabrir conserva las selecciones.
+- [x] AD9. Embarque: con algo pendiente explica qué falta; con todo listo, «Confirmar la salida y embarcar» abre ExpedicionMVP directamente en los mensajes de transición, sin portada ni otra preparación.
+- [x] AD10. En la misión, la configuración (motor, tanque, instrumento, combustible, kits, suministros, sonda) es exactamente la del hangar, y el presupuesto de los resultados coincide.
+- [x] AD11. Al terminar, «Volver al hangar terrestre» lleva al hangar con las selecciones conservadas y la carga por preparar.
+- [x] AD12. Abrir ExpedicionMVP directamente sigue mostrando la portada y su preparación de siempre.
+
+## AE. Preparación dinámica, holograma, carro, combustible, despegue, escenas y ejecutable — 13-11-2026
+
+**Estado: PENDIENTES.** Código escrito y revisado por lectura; no compilado ni ejecutado. AD1–AD12 siguen valiendo solo para la versión de `Copia_funcional_hangar_validado_2026-11-13.zip`. Nota: los menús antiguos citados en secciones anteriores (16, 17, 18, 19…) tienen ahora la ruta de la tabla de `LEEME_EQUIPO.md`.
+
+Preparación común: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play. Primero comprobar que la consola no muestra errores de compilación.
+
+### AE1. Tres alternativas y persistencia de la selección
+- [ ] Terminal 2: motor, tanque e instrumento muestran 3 opciones cada uno, con empuje/consumo/masa/precio (motor), capacidad/masa/precio (tanque) y consumo/datos/utilidad por misión (instrumento).
+- [ ] Elegir «Tanque ligero» con 6 tramos: los tramos bajan a 3 y aparece el aviso de cambio de velocidad si no alcanza.
+- [ ] Elegir el sensor de diagnóstico con la misión K-2: sin aviso de instrumento; con otra misión, aviso de no recomendado.
+- [ ] Salir y volver a entrar en la terminal: la selección se conserva. Tras embarcar, la llegada muestra esas mismas piezas (AE7).
+
+### AE2. Holograma
+- [ ] E delante de la mesa central → vista propia; botón derecho + arrastrar y flechas giran; la rueda acerca solo fuera del panel.
+- [ ] Pestañas MOTOR/TANQUE/INSTRUMENTO resaltan el módulo correspondiente en amarillo.
+- [ ] Pulsar una alternativa: la pieza actual se separa, entra la nueva (color distinto) y aparece la comparación. El presupuesto de la banda superior NO cambia.
+- [ ] «Volver a la pieza actual» y Esc descartan la previsualización sin cambiar nada.
+- [ ] «ENCARGAR ESTE CAMBIO» cambia la selección (la terminal 2 la muestra igual) y el total se recalcula una sola vez.
+- [ ] Con la preparación cerrada, «Encargar» está desactivado y se indica reabrirla.
+
+### AE3. Costes sin duplicación
+- [ ] Anotar el total. Encargar motor A → B → A: el total vuelve exactamente al inicial.
+- [ ] Preparar, llevar y entregar todos los lotes y autorizar el combustible: el total no cambia.
+- [ ] Cerrar, reabrir y volver a cerrar: el total no cambia y las selecciones se conservan.
+
+### AE4. Carga con carro y cambio posterior
+- [ ] Con la sonda y kits extra seleccionados, la estantería muestra un contenedor por lote con su cantidad; los lotes a 0 aparecen como «no hace falta».
+- [ ] E en el asa del carro → se empuja (más despacio). Delante de la estantería de kits, E → el contenedor pasa al carro y el rótulo dice «EN EL CARRO».
+- [ ] Intentar cargar otro lote con el carro lleno → mensaje, no se carga.
+- [ ] Entrar con el carro en la zona amarilla → lote LISTO, contenedor colocado en la zona, carro vacío.
+- [ ] Cambiar después la cantidad de kits → solo el lote de kits vuelve a su estantería y queda por preparar; los demás siguen LISTOS.
+- [ ] Cambiar la cantidad mientras el contenedor va en el carro → el contenedor vuelve a la estantería.
+- [ ] Empujar el carro contra una pared → «BLOQUEADO»; R lo devuelve a su base vacío y el lote que llevaba sigue por preparar.
+- [ ] El recorrido no se vuelve inestable (sin saltos ni objetos que salgan disparados).
+
+### AE5. Puesto de combustible
+- [ ] Sin tramos: el puesto indica que no hay nada que autorizar y el combustible no aparece como pendiente.
+- [ ] Con tramos: «Autorizar» está desactivado hasta verificar la alimentación; tras autorizar, el indicador pasa a verde y el lote queda PREPARADO.
+- [ ] Cambiar los tramos o el tanque después → el combustible vuelve a quedar por autorizar.
+
+### AE6. Embarque bloqueado y despegue
+- [ ] Con algo pendiente (por ejemplo, combustible sin autorizar), el embarque lo indica y no inicia la secuencia.
+- [ ] Con todo listo: acceso, asiento, cierre de compuerta, comprobación, cuenta atrás, encendido, ascenso y llegada a la EM-4X. No se puede pilotar.
+- [ ] La primera vez Espacio no omite. Volver al hangar desde los resultados y embarcar otra vez: Espacio/Intro omiten la secuencia y se llega igual.
+- [ ] Omitir no cambia el total ni la configuración y no salta requisitos (el embarque sigue bloqueado si falta algo).
+
+### AE7. Llegada con la configuración correcta
+- [ ] En ExpedicionMVP no aparece otra preparación obligatoria; el informe de llegada lista la misión, piezas, combustible y carga elegidos en el hangar y el mismo total.
+- [ ] Probar al menos una vez con motor de alta eficiencia + tanque ligero + sensor de diagnóstico.
+
+### AE8. Nueva expedición sin estado residual
+- [ ] Terminar o volver al hangar: selecciones conservadas, preparación abierta, todos los lotes por preparar, contenedores en sus estanterías, carro en su base, combustible por autorizar.
+- [ ] Repetir la preparación completa y embarcar: sin cobros dobles ni lotes marcados de la expedición anterior.
+- [ ] Acceso directo: *Juego → 4. Abrir ExpedicionMVP* → Play sigue mostrando su propia preparación.
+
+### AE9. Menús, escenas y ejecutable
+- [ ] El menú Prototipo muestra tres grupos: Juego, Arte y pruebas, Prototipos antiguos (con todas las herramientas anteriores dentro).
+- [ ] Los menús «Abrir…» abren la escena sin modificarla; si no existe (ModeloPrueba antes de crearla), avisan.
+- [ ] *Juego → 6* genera `Ejecutable/ExpedicionEM4X_Completo/ExpedicionEM4X.exe`; el exe arranca en el hangar y embarcar abre la expedición. Se crea `CopiasSeguridad/ConfiguracionEjecutable_anterior.txt`.
+- [ ] En el ejecutable, «Volver al hangar terrestre» desde los resultados funciona.
+- [ ] *Juego → 7* sigue generando el ejecutable anterior (solo ExpedicionMVP).
