@@ -123,6 +123,7 @@ namespace PrototipoMision
                 case EstacionHangar.Carro: return "E: empujar · ";
                 case EstacionHangar.Estanteria: return h.Carro != null && h.Carro.Empujando ? "E: cargar el contenedor en el carro · " : "E: consultar · ";
                 case EstacionHangar.Holograma: return "E: consultar y comparar · ";
+                case EstacionHangar.Integracion: return "E: elegir y comparar piezas · ";
                 default: return "E: usar · ";
             }
         }
@@ -133,6 +134,7 @@ namespace PrototipoMision
         {
             if (p != ultimaAbierta) { ultimaAbierta = p; desp = Vector2.zero; }
             if (p.tipo == EstacionHangar.Holograma) { PanelHolograma(); return; }
+            if (p.tipo == EstacionHangar.Integracion) { PanelIntegracion(); return; }
             Rect r = p.tipo == EstacionHangar.Combustible ? new Rect(ancho / 2f - 430f, 220f, 860f, 600f) : new Rect(ancho / 2f - 600f, 140f, 1200f, 860f);
             Fondo(r, 0.92f);
             GUILayout.BeginArea(new Rect(r.x + 20f, r.y + 12f, r.width - 40f, r.height - 24f));
@@ -284,8 +286,9 @@ namespace PrototipoMision
             ResumenExpedicion r = h.Resumen;
             PreparacionExpedicion b = h.Borrador;
             GUILayout.Label("3 · CARGA DE LA EXPEDICIÓN (manifiesto)", sGrande);
-            GUILayout.Label("Elige aquí cuánto se envía. Después lleva cada lote a la zona de envío con el CARRO: empújalo (E en su asa), " +
-                            "acércalo a la estantería y pulsa E para fijar el contenedor; al entrar en la zona amarilla queda LISTO. " +
+            GUILayout.Label("Elige aquí cuánto se envía. Después lleva cada lote con el CARRO: empújalo (E en su asa), acércalo a la estantería y " +
+                            "pulsa E para fijar el contenedor. Según la lanzadera, cada lote se entrega en la ZONA DE ENVÍO ORBITAL (amarilla, zona C) " +
+                            "o en el MUELLE DE LA LANZADERA (verde, zona B); al llegar al sitio correcto queda LISTO. " +
                             "Cada lote es un solo contenedor con todas sus unidades. Preparar no crea más carga ni se cobra otra vez: confirma lo presupuestado.", sPequeno);
             Bloqueo();
             int s = Contador("Suministros extra", b.suministrosExtra, BalanceEM4X.MaximoSuministrosExtra,
@@ -303,10 +306,15 @@ namespace PrototipoMision
             if (h.Lotes.Count == 0) GUILayout.Label("No se envía nada desde tierra con la selección actual.", sBien);
             foreach (LoteCarga lo in h.Lotes)
             {
-                string como = lo.id == "combustible" ? "autorizar en el puesto de combustible" : h.Carro != null && h.Carro.Lote == lo.id ? "EN EL CARRO" : "llevar con el carro";
+                string como = lo.id == "combustible" ? "autorizar en el puesto de combustible" : h.Carro != null && h.Carro.Lote == lo.id ? "EN EL CARRO"
+                            : lo.enLanzadera ? "carro → muelle de la lanzadera (B)" : "carro → zona de envío orbital (C)";
                 GUILayout.Label($"{(lo.preparado ? "<color=#59CC73>[x] PREPARADO</color>" : $"<color=#FFB040>[ ] POR PREPARAR · {como}</color>")} · <b>{lo.nombre}</b>: {lo.detalle.Replace("\n", ", ")}", sTexto);
             }
-            GUILayout.Label("Si cambias una cantidad o un componente, solo ese lote vuelve a quedar por preparar (su contenedor vuelve a la estantería).", sPequeno);
+            GUILayout.Label("Si cambias una cantidad o un componente, solo ese lote vuelve a quedar por preparar (su contenedor vuelve a la estantería). " +
+                            "Si un cambio de la lanzadera hace que un lote cambie de vehículo, también hay que volver a prepararlo.", sPequeno);
+            if (r.lanzadera != null)
+                GUILayout.Label($"Lanzadera L-4: {DatosLanzadera.Resumen(r.lanzadera.eleccion)} · " +
+                                (r.lanzadera.envioOrbital ? "hace falta envío orbital aparte" : "no hace falta envío orbital aparte"), sPequeno);
             if (h.Carro != null) GUILayout.Label(h.EstadoCarro() + " · si se atasca o se pierde, pulsa R fuera de la terminal para devolverlo a su base.", sPequeno);
         }
 
@@ -325,7 +333,8 @@ namespace PrototipoMision
             if (r.avisos.Count == 0) GUILayout.Label("Ninguno.", sBien);
             foreach (string a in r.avisos) GUILayout.Label("<color=#FFD070>[!] " + a + "</color>", sPequeno);
             GUILayout.Label($"Resumen: {r.mision.nombre} · {r.motor.nombre} · {r.tanque.nombre} · {r.instrumento.nombre} · {r.relevo.nombre} · " +
-                            $"combustible {r.combustibleKg / 1000f:0.0} t · {r.suministros} suministros · {r.kits} kits · " + (r.sonda ? "con sonda" : "sin sonda"), sPequeno);
+                            $"combustible {r.combustibleKg / 1000f:0.0} t · {r.suministros} suministros · {r.kits} kits · " + (r.sonda ? "con sonda" : "sin sonda") +
+                            (r.lanzadera != null ? $"\nLanzadera L-4 (aparte): {DatosLanzadera.Resumen(r.lanzadera.eleccion)} · {Viaja(r.lanzadera)}" : ""), sPequeno);
             Presupuesto(r);
             GUILayout.Space(8f);
             if (!ExpedicionActual.Confirmada)
@@ -343,7 +352,8 @@ namespace PrototipoMision
         {
             GUILayout.Label("5 · EMBARQUE · LANZADERA L-4", sGrande);
             GUILayout.Label("La lanzadera L-4 (terrestre) lleva a la tripulación hasta la EM-4X, que espera en órbita. Se muestra una secuencia breve " +
-                            "de embarque, cuenta atrás y ascenso (no pilotable) y se llega al interior de la EM-4X. " +
+                            "de traslado a la plataforma, embarque, cuenta atrás y ascenso (no pilotable) con la lanzadera tal como se confirmó en la integración, " +
+                            "y se llega al interior de la EM-4X. " +
                             (SecuenciaDespegue.PuedeOmitirse ? "Ya la has visto: podrás omitirla con Espacio o Intro." : "La primera vez se ve entera; después podrá omitirse."), sPequeno);
             bool listo = true;
             foreach (HangarTerrestre.Requisito q in h.Requisitos())
@@ -372,9 +382,10 @@ namespace PrototipoMision
                 GUILayout.Label("Con la selección actual no se envía combustible desde tierra (0 tramos): no hay nada que autorizar.", sBien);
                 return;
             }
-            GUILayout.Label($"Lote: <b>{lo.detalle}</b> · combustible total a bordo previsto {h.Resumen.combustibleKg / 1000f:0.0} t de {h.Resumen.capacidadKg / 1000f:0} t", sTexto);
+            GUILayout.Label(lo.enLanzadera ? "Este combustible viaja en el TANQUE DE TRANSFERENCIA de la lanzadera L-4." : "Este combustible viaja en el ENVÍO ORBITAL sin tripulación.", sTexto);
+            GUILayout.Label($"Lote: <b>{lo.detalle.Replace("\n", ", ")}</b> · combustible total a bordo de la EM-4X previsto {h.Resumen.combustibleKg / 1000f:0.0} t de {h.Resumen.capacidadKg / 1000f:0} t", sTexto);
             GUILayout.Space(8f);
-            GUILayout.Label((h.AlimentacionVerificada ? "<color=#59CC73>[OK]</color>" : "<color=#FFB040>[1]</color>") + " Verificar la alimentación de la bomba y la línea hasta la zona de envío", sTexto);
+            GUILayout.Label((h.AlimentacionVerificada ? "<color=#59CC73>[OK]</color>" : "<color=#FFB040>[1]</color>") + " Verificar la alimentación de la bomba y la línea" + (lo.enLanzadera ? " hasta la lanzadera" : " hasta la zona de envío"), sTexto);
             if (!h.AlimentacionVerificada && GUILayout.Button("VERIFICAR ALIMENTACIÓN", sBoton, GUILayout.Height(40f))) Hacer(h.VerificarAlimentacion);
             GUILayout.Label((lo.preparado ? "<color=#59CC73>[OK]</color>" : "<color=#FFB040>[2]</color>") + " Autorizar el llenado del combustible presupuestado", sTexto);
             if (!lo.preparado)
@@ -383,7 +394,7 @@ namespace PrototipoMision
                 if (GUILayout.Button(h.AlimentacionVerificada ? "AUTORIZAR EL LLENADO" : "AUTORIZAR EL LLENADO (antes verifica la alimentación)", sBoton, GUILayout.Height(40f))) Hacer(h.AutorizarLlenado);
                 GUI.enabled = true;
             }
-            else GUILayout.Label("Llenado autorizado. Si cambias los tramos o el tanque, habrá que autorizarlo de nuevo.", sBien);
+            else GUILayout.Label("Llenado autorizado. Si cambias los tramos, el tanque o el tanque de transferencia de la lanzadera, habrá que autorizarlo de nuevo.", sBien);
         }
 
         // ------------------------------------------------------------------ Holograma: panel lateral (comparar y encargar)
@@ -516,6 +527,123 @@ namespace PrototipoMision
             }
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("SALIR DEL HOLOGRAMA (Esc)", sBoton, GUILayout.Height(38f))) Hacer(h.Cerrar);
+            GUILayout.EndArea();
+        }
+
+        // ------------------------------------------------------------------ Integración de la lanzadera L-4 (zona B)
+
+        int cacheFrameL = -1;
+        PiezaLanzadera cachePiezaL;
+        readonly List<ResumenExpedicion> variantesL = new List<ResumenExpedicion>();
+
+        void VariantesL(PiezaLanzadera t)
+        {
+            if (cacheFrameL == Time.frameCount && cachePiezaL == t) return;
+            cacheFrameL = Time.frameCount; cachePiezaL = t;
+            variantesL.Clear();
+            int n = DatosLanzadera.Opciones(t).Count;
+            for (int i = 0; i < n; i++)
+            {
+                int k = i;
+                // Solo cambia la configuración de la LANZADERA (copia completa: la EM-4X y el borrador no se tocan)
+                variantesL.Add(BalanceEM4X.Variante(h.Borrador, h.Catalogo, p => DatosLanzadera.Fijar(p.lanzadera, t, k)));
+            }
+        }
+
+        static string Viaja(ResumenLanzadera l) =>
+            (l.enLanzadera.Count > 0 ? "en la L-4: " + string.Join(", ", l.enLanzadera) : "la L-4 no lleva carga") + " · " +
+            (l.envioOrbital ? "envío orbital aparte (10 M): " + string.Join(", ", l.enEnvio) : "sin envío orbital aparte");
+
+        void PanelIntegracion()
+        {
+            IntegracionLanzadera il = h.Integracion;
+            PiezaLanzadera t = il.Seleccion;
+            VariantesL(t);
+            ResumenExpedicion act = h.Resumen;
+            ResumenLanzadera la = act.lanzadera;
+            int actual = DatosLanzadera.Indice(h.Borrador.lanzadera, t);
+            int cand = il.Candidata;
+
+            Rect r = new Rect(ancho - 720f, 140f, 700f, 860f);
+            Fondo(r, 0.9f);
+            Mouse m = Mouse.current;
+            if (m != null)
+            {
+                Vector2 pr = m.position.ReadValue();
+                il.RuedaBloqueada = r.Contains(new Vector2(pr.x, Screen.height - pr.y) / escala);
+            }
+
+            GUILayout.BeginArea(new Rect(r.x + 16f, r.y + 10f, r.width - 32f, r.height - 20f));
+            GUILayout.Label("B · INTEGRACIÓN DE LA LANZADERA L-4 (vehículo terrestre)", sTitulo);
+            GUILayout.Label("Solo se configura la lanzadera que sube a la tripulación. La EM-4X (en órbita) no cambia aquí. " +
+                            "Valores de DEMOSTRACIÓN: reglas de juego explícitas, no prestaciones validadas. Geometría provisional.", sPequeno);
+            GUILayout.Label("<b>Botón derecho + arrastrar</b> o <b>flechas</b>: girar · <b>rueda</b> (fuera del panel): acercar · <b>Esc</b>: salir", sPequeno);
+            Bloqueo();
+            if (la != null)
+                GUILayout.Label($"Ahora: masa extra {la.masaExtraKg:0} de {la.capacidadKg:0} kg · opciones {la.costeOpcionesMUSD:0.#} M\n{Viaja(la)}",
+                                la.CapacidadSuperada ? sMal : sPequeno);
+
+            GUILayout.BeginHorizontal();
+            foreach (PiezaLanzadera p in new[] { PiezaLanzadera.Bodega, PiezaLanzadera.Tanque, PiezaLanzadera.Refuerzos })
+            {
+                string nombre = p == PiezaLanzadera.Bodega ? "BODEGA" : p == PiezaLanzadera.Tanque ? "TANQUE TRANSF." : "REFUERZOS";
+                GUI.enabled = !il.Animando;
+                if (GUILayout.Button(p == t ? $"<b>[ {nombre} ]</b>" : nombre, sBoton, GUILayout.Height(36f)) && p != t) { PiezaLanzadera q = p; Hacer(() => il.Elegir(q)); }
+                GUI.enabled = true;
+            }
+            GUILayout.EndHorizontal();
+
+            desp = GUILayout.BeginScrollView(desp, GUILayout.Height(400f));
+            List<OpcionLanzadera> ops = DatosLanzadera.Opciones(t);
+            for (int i = 0; i < ops.Count && i < variantesL.Count; i++)
+            {
+                OpcionLanzadera o = ops[i];
+                ResumenExpedicion v = variantesL[i];
+                string estado = i == actual ? (i == 0 ? "<color=#80E090>DE SERIE</color>" : "<color=#FFD070>CONFIRMADA</color>") : i == cand ? "<color=#FFF070>EN PREVISUALIZACIÓN</color>" : "";
+                string datos = t == PiezaLanzadera.Refuerzos ? $"sube hasta {o.capacidadKg:0} kg extra · {o.costeMUSD:0.#} M"
+                             : $"admite {o.capacidadKg:0} kg · pesa {o.masaKg:0} kg · {o.costeMUSD:0.#} M";
+                string adv = v.problemas.Count > 0 ? "\n<color=#FF7060>[X] " + v.problemas[0] + "</color>" : "";
+                foreach (string a in v.avisos)
+                    if (!act.avisos.Contains(a) && (a.Contains("lanzadera") || a.Contains("refuerzos") || a.Contains("envío orbital"))) { adv += "\n<color=#FFB040>[!] " + a + "</color>"; break; }
+                GUI.enabled = !il.Animando;
+                if (GUILayout.Button($"<b>{(i == actual ? "● " : "○ ")}{o.nombre}</b> {estado}\n<size=13>{o.queHace}\n{datos}\n<i>Efecto: {o.consecuencia}</i>{adv}</size>", sBoton) && i != cand)
+                {
+                    int k = i;
+                    Hacer(() => il.Previsualizar(k));
+                }
+                GUI.enabled = true;
+            }
+            GUILayout.EndScrollView();
+
+            GUILayout.Label("COMPARACIÓN (antes de confirmar)", sTitulo);
+            if (cand < 0 || cand >= variantesL.Count)
+                GUILayout.Label(il.Animando ? "La grúa retira y coloca la pieza…" : "Pulsa una alternativa: la grúa la coloca en el vehículo y aquí se compara con lo actual.", sPequeno);
+            else
+            {
+                ResumenExpedicion v = variantesL[cand];
+                ResumenLanzadera lv = v.lanzadera;
+                if (lv != null && la != null)
+                    GUILayout.Label($"Coste total previsto: {Dif(v.costeTotalMUSD, act.costeTotalMUSD, "0.#", " M", false)} de {v.presupuestoMUSD:0} M USD\n" +
+                                    $"Masa extra de la L-4: {Dif(lv.masaExtraKg, la.masaExtraKg, "0", " kg", false)} de {lv.capacidadKg:0} kg" +
+                                    (lv.CapacidadSuperada ? " <color=#FF7060>SUPERA LA CAPACIDAD</color>" : "") + "\n" +
+                                    Viaja(lv) + "\n" +
+                                    "<i>La EM-4X no cambia: mismo Δv, misma masa y mismo combustible a bordo.</i>", sTexto);
+                foreach (string p in v.problemas) GUILayout.Label("[X] " + p, sMal);
+                GUILayout.BeginHorizontal();
+                bool superada = lv != null && lv.CapacidadSuperada;     // no se confirma una lanzadera que no puede subir su masa
+                GUI.enabled = !il.Animando && !ExpedicionActual.Confirmada && !superada;
+                if (GUILayout.Button(superada ? "NO SE PUEDE CONFIRMAR: supera la capacidad (añade refuerzos antes)" : v.problemas.Count > 0 ? "CONFIRMAR IGUALMENTE (no se podrá cerrar así)" : "CONFIRMAR ESTA PIEZA", sBoton, GUILayout.Height(40f)))
+                {
+                    int k = cand; PiezaLanzadera q = t;
+                    Hacer(() => h.EncargarLanzadera(q, k));
+                }
+                GUI.enabled = !il.Animando;
+                if (GUILayout.Button("Volver a la pieza actual", sBoton, GUILayout.Height(40f))) { int k = actual; Hacer(() => il.Previsualizar(k)); }
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("SALIR DE LA INTEGRACIÓN (Esc)", sBoton, GUILayout.Height(38f))) Hacer(h.Cerrar);
             GUILayout.EndArea();
         }
 }

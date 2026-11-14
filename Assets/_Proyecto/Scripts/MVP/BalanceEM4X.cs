@@ -32,8 +32,16 @@ namespace PrototipoMision
         public int tramosCombustible = 4;   // tramos cargados desde tierra, además del remanente a bordo
         public int suministrosExtra;        // unidades además de las que ya hay a bordo
         public int kitsExtra = 1;           // kits además del que ya hay a bordo
+        /// <summary>Lanzadera L-4 (vehículo terrestre). Va aparte de las piezas de la EM-4X; ver DatosLanzadera.</summary>
+        public ConfiguracionLanzadera lanzadera = new ConfiguracionLanzadera();
 
-        public PreparacionExpedicion Copia() => (PreparacionExpedicion)MemberwiseClone();
+        /// <summary>Copia COMPLETA (también la configuración de la lanzadera: no se comparte entre copias).</summary>
+        public PreparacionExpedicion Copia()
+        {
+            PreparacionExpedicion c = (PreparacionExpedicion)MemberwiseClone();
+            c.lanzadera = lanzadera != null ? lanzadera.Copia() : new ConfiguracionLanzadera();
+            return c;
+        }
     }
 
     public class LineaPresupuesto
@@ -63,7 +71,10 @@ namespace PrototipoMision
         public readonly List<LineaPresupuesto> lineas = new List<LineaPresupuesto>();
         public float costeTotalMUSD, presupuestoMUSD;
         public int sustituciones;
+        /// <summary>Se manda algo desde tierra (en la lanzadera o en el envío orbital).</summary>
         public bool enviaDesdeTierra;
+        /// <summary>Lanzadera L-4: qué lleva, masa, capacidad y si sigue haciendo falta el envío orbital.</summary>
+        public ResumenLanzadera lanzadera;
         public readonly List<string> enviado = new List<string>();
         public readonly List<string> problemas = new List<string>();
         public readonly List<string> avisos = new List<string>();
@@ -96,11 +107,12 @@ namespace PrototipoMision
         };
 
         // ------------------------------------------------------------------ Tarifas (M USD) — DEMOSTRACIÓN, configurables aquí
-        /// <summary>Cargo fijo si se envía cualquier pieza o carga desde tierra (un solo envío, se cobra una vez).</summary>
+        /// <summary>Envío orbital SIN tripulación: cargo fijo si queda algo que no viaja en la lanzadera (se cobra una vez).</summary>
         public const float TarifaTransporteOrbitalMUSD = 10f;
         /// <summary>Por cada componente sustituido en la nave (motor, tanque, instrumento, relevo).</summary>
         public const float TarifaInstalacionMUSD = 3f;
-        /// <summary>Lanzamiento de la tripulación en la lanzadera (configuración fija).</summary>
+        /// <summary>Lanzamiento de la tripulación en la lanzadera L-4 (cápsula, lanzamiento y servicio de plataforma).
+        /// Incluye la L-4 de siempre (sin bodega, sin tanque, sin refuerzos); las opciones se cobran aparte.</summary>
         public const float TarifaLanzamientoTripulacionMUSD = 18f;
         public const float CosteKitMUSD = 1.5f;
         public const float CosteSuministroMUSD = 1f;
@@ -287,6 +299,22 @@ namespace PrototipoMision
             float ve = r.motor.consumoKgS > 0f ? r.motor.empujeN / r.motor.consumoKgS : 0f;
             r.deltaVMS = ve * Mathf.Log(r.masaTotalKg / r.masaSecaKg);
 
+            // ---- Lanzadera L-4 (vehículo terrestre; reglas en DatosLanzadera)
+            ConfiguracionLanzadera cl = p.lanzadera != null ? p.lanzadera.Copia() : new ConfiguracionLanzadera();
+            DatosLanzadera.Limitar(cl);
+            ResumenLanzadera rl = r.lanzadera = new ResumenLanzadera { eleccion = cl };
+            rl.bodega = DatosLanzadera.Bodegas()[cl.bodega];
+            rl.tanque = DatosLanzadera.Tanques()[cl.tanque];
+            rl.refuerzos = DatosLanzadera.Refuerzos()[cl.refuerzos];
+            rl.cargaPequenaKg = sumExtra * MasaSuministroKg + kitsExtra * MasaKitKg + masaSonda;
+            rl.combustibleEncargadoKg = tramos * TramoCombustibleKg;
+            rl.cargaPequenaEnLanzadera = rl.cargaPequenaKg > 0f && rl.cargaPequenaKg <= rl.bodega.capacidadKg + 0.5f;
+            rl.combustibleEnLanzadera = rl.combustibleEncargadoKg > 0f && rl.combustibleEncargadoKg <= rl.tanque.capacidadKg + 0.5f;
+            rl.masaExtraKg = rl.bodega.masaKg + rl.tanque.masaKg + (rl.cargaPequenaEnLanzadera ? rl.cargaPequenaKg : 0f)
+                             + (rl.combustibleEnLanzadera ? rl.combustibleEncargadoKg : 0f);
+            rl.capacidadKg = rl.refuerzos.capacidadKg;
+            rl.costeOpcionesMUSD = rl.bodega.costeMUSD + rl.tanque.costeMUSD + rl.refuerzos.costeMUSD;
+
             // ---- Presupuesto por partidas (previsto; se calcula entero cada vez, nunca se acumula)
             void Linea(string partida, string concepto, float coste) =>
                 r.lineas.Add(new LineaPresupuesto { partida = partida, concepto = concepto, costeMUSD = coste });
@@ -319,10 +347,30 @@ namespace PrototipoMision
                 r.enviado.Add($"{kitsExtra} kits de reparación");
             }
             r.enviaDesdeTierra = r.enviado.Count > 0;
-            if (r.enviaDesdeTierra) Linea("Transporte orbital", "Un envío desde tierra con todo lo anterior (cargo fijo)", TarifaTransporteOrbitalMUSD);
+
+            // Qué viaja en la lanzadera y qué en el envío orbital (componentes de la EM-4X: siempre en el envío)
+            if (p.motor > 0) rl.enEnvio.Add(r.motor.nombre);
+            if (p.tanque > 0) rl.enEnvio.Add(r.tanque.nombre);
+            if (p.instrumento > 0) rl.enEnvio.Add(r.instrumento.nombre);
+            if (p.relevo > 0) rl.enEnvio.Add(r.relevo.nombre);
+            List<string> pequena = new List<string>();
+            if (sumExtra > 0) pequena.Add($"{sumExtra} suministros");
+            if (kitsExtra > 0) pequena.Add($"{kitsExtra} kits");
+            if (p.sonda) pequena.Add("sonda de despliegue");
+            (rl.cargaPequenaEnLanzadera ? rl.enLanzadera : rl.enEnvio).AddRange(pequena);
+            if (tramos > 0) (rl.combustibleEnLanzadera ? rl.enLanzadera : rl.enEnvio).Add($"{tramos * TramoCombustibleKg:0} kg de combustible");
+            rl.envioOrbital = rl.enEnvio.Count > 0;
+
+            if (rl.envioOrbital)
+                Linea("Envío orbital sin tripulación", "Un envío con lo que no viaja en la lanzadera: " + string.Join(", ", rl.enEnvio) + " (cargo fijo)", TarifaTransporteOrbitalMUSD);
             if (r.sustituciones > 0)
-                Linea("Instalación", $"{r.sustituciones} componente(s) sustituido(s) × {TarifaInstalacionMUSD:0.#} M", r.sustituciones * TarifaInstalacionMUSD);
-            Linea("Lanzamiento de la tripulación", "Lanzadera L-4 (configuración fija)", TarifaLanzamientoTripulacionMUSD);
+                Linea("Instalación en la EM-4X", $"{r.sustituciones} componente(s) sustituido(s) × {TarifaInstalacionMUSD:0.#} M", r.sustituciones * TarifaInstalacionMUSD);
+            const string partidaL = "Lanzadera L-4 (vehículo terrestre, aparte de la EM-4X)";
+            Linea(partidaL, "Lanzamiento de la tripulación: cápsula, lanzamiento y servicio de plataforma (tarifa; incluye la L-4 sin bodega, tanque ni refuerzos)",
+                  TarifaLanzamientoTripulacionMUSD);
+            if (cl.bodega > 0) Linea(partidaL, rl.bodega.nombre, rl.bodega.costeMUSD);
+            if (cl.tanque > 0) Linea(partidaL, rl.tanque.nombre + " (solo el tanque; el combustible ya está en su partida)", rl.tanque.costeMUSD);
+            if (cl.refuerzos > 0) Linea(partidaL, rl.refuerzos.nombre, rl.refuerzos.costeMUSD);
 
             r.costeTotalMUSD = 0f;
             foreach (LineaPresupuesto l in r.lineas) r.costeTotalMUSD += l.costeMUSD;
@@ -334,6 +382,24 @@ namespace PrototipoMision
                 r.problemas.Add("Esta misión despliega una sonda: hay que incluir la sonda de despliegue.");
             if (r.instrumento.datosPorEscaneoMB > r.memoriaMB)
                 r.problemas.Add($"La memoria ({r.memoriaMB:0} MB) no admite ni una captura de {r.instrumento.nombre}.");
+            if (rl.CapacidadSuperada)
+                r.problemas.Add($"La lanzadera L-4 tendría que subir {rl.masaExtraKg:0} kg extra y con «{rl.refuerzos.nombre}» solo puede {rl.capacidadKg:0} kg: " +
+                                "pon más refuerzos o quita bodega, tanque o carga.");
+
+            // ---- Avisos de la lanzadera (no bloquean)
+            if (cl.bodega > 0 && rl.cargaPequenaKg <= 0f)
+                r.avisos.Add("La bodega de la lanzadera va vacía: no hay suministros, kits ni sonda que llevar. Pesa y cuesta sin aportar nada.");
+            else if (cl.bodega > 0 && !rl.cargaPequenaEnLanzadera)
+                r.avisos.Add($"La carga pequeña ({rl.cargaPequenaKg:0} kg) no cabe en la {rl.bodega.nombre.ToLower()} ({rl.bodega.capacidadKg:0} kg): va en el envío orbital y la bodega viaja vacía.");
+            if (cl.tanque > 0 && tramos == 0)
+                r.avisos.Add("El tanque de transferencia de la lanzadera va vacío: no se encarga combustible.");
+            else if (cl.tanque > 0 && !rl.combustibleEnLanzadera)
+                r.avisos.Add($"El combustible encargado ({rl.combustibleEncargadoKg:0} kg) no cabe en el tanque de transferencia ({rl.tanque.capacidadKg:0} kg): va en el envío orbital y el tanque viaja vacío.");
+            if (cl.refuerzos > 0 && rl.masaExtraKg <= DatosLanzadera.Refuerzos()[cl.refuerzos - 1].capacidadKg + 0.5f)
+                r.avisos.Add($"Con {rl.masaExtraKg:0} kg extra bastaría con «{DatosLanzadera.Refuerzos()[cl.refuerzos - 1].nombre}»: los refuerzos de más cuestan sin efecto.");
+            if (rl.envioOrbital && rl.enLanzadera.Count > 0)
+                r.avisos.Add("Sigue haciendo falta el envío orbital (10 M) por: " + string.Join(", ", rl.enEnvio) +
+                             ". Lo que viaja en la lanzadera no ahorra esa tarifa.");
 
             // ---- Avisos que no bloquean
             if (r.deltaVMS < r.mision.deltaVOrientativoMS)

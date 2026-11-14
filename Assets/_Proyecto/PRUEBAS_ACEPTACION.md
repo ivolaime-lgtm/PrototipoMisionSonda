@@ -679,3 +679,41 @@ Preparación común: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Pla
 - [ ] *Juego → 6* genera `Ejecutable/ExpedicionEM4X_Completo/ExpedicionEM4X.exe`; el exe arranca en el hangar y embarcar abre la expedición. Se crea `CopiasSeguridad/ConfiguracionEjecutable_anterior.txt`.
 - [ ] En el ejecutable, «Volver al hangar terrestre» desde los resultados funciona.
 - [ ] *Juego → 7* sigue generando el ejecutable anterior (solo ExpedicionMVP).
+
+## AF. Lanzadera L-4 configurable y edificio de integración — 13-11-2026
+
+**Estado: PENDIENTES.** Escrito y revisado por lectura; no compilado ni ejecutado. AE1–AE9 siguen pendientes. Abrir: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play.
+
+### AF1. Bloque visual de la zona industrial
+- [ ] Desde la entrada, el cartel nombra las zonas A, B, C y D; en la pared derecha hay un paso con el cartel «B · INTEGRACIÓN DE LA LANZADERA L-4 →».
+- [ ] Se cruza el paso sin caer ni engancharse; el edificio es alto, con la lanzadera de pie sobre su plataforma, dos torres, plataformas, pasarelas, puente grúa y focos.
+- [ ] Desde el suelo se leen los rótulos BODEGA / TANQUE DE TRANSFERENCIA / PROPULSORES DE REFUERZO con la opción actual.
+- [ ] Rendimiento aceptable al mirar el edificio (anotar FPS reales; no se han medido).
+
+### AF2. Selección y previsualización
+- [ ] E en la consola B: vista propia; giro con botón derecho o flechas; la rueda acerca sin atravesar paredes.
+- [ ] Cada pestaña resalta su pieza en amarillo y muestra 3 alternativas con datos y efecto.
+- [ ] Pulsar una alternativa: la grúa saca la pieza y coloca la nueva (verde); el presupuesto de la banda superior NO cambia.
+- [ ] «Volver a la pieza actual» y Esc descartan; al salir la lanzadera vuelve a la configuración confirmada.
+- [ ] «CONFIRMAR ESTA PIEZA» cambia la representación, el rótulo y el total una sola vez.
+- [ ] El holograma azul de la EM-4X sigue igual y su selección no cambia al tocar la lanzadera (y al revés).
+
+### AF3. Consecuencias de la configuración
+- [ ] Sin tocar la lanzadera, el total es el mismo que antes del incremento con la misma selección.
+- [ ] Misión 3 (sonda) con 1 kit extra y 0 tramos de combustible: bodega pequeña → la sonda y los kits viajan en la L-4, desaparece la línea del envío orbital y el total baja 10 − 1,5 = 8,5 M.
+- [ ] Con un componente de la EM-4X encargado, el envío orbital sigue cobrándose y aparece el aviso de que la L-4 no ahorra esa tarifa.
+- [ ] Con 2 tramos encargados y sin refuerzos, previsualizar el tanque de 2 tramos → la comparación marca «SUPERA LA CAPACIDAD» (6800 de 1000 kg) y el botón de confirmar está bloqueado. Con 4 refuerzos confirmados antes, se puede confirmar.
+- [ ] Con bodega o tanque confirmados, quitar los refuerzos que hacen falta también queda bloqueado (no se puede dejar la lanzadera sin capacidad).
+- [ ] Con bodega grande sin refuerzos, subir los kits o suministros hasta pasar de 1000 kg → problema de capacidad en la revisión y no se puede cerrar; bajarlos lo resuelve.
+- [ ] Refuerzos sin bodega ni tanque → aviso de gasto sin efecto.
+- [ ] Los lotes que viajan en la L-4 se entregan en el muelle verde (zona B); llevarlos a la zona amarilla da un mensaje (una sola vez) y no los marca. Y al revés.
+- [ ] Con un lote ya entregado, cambiar la bodega de forma que cambie de vehículo → el lote vuelve a quedar por preparar (su contenedor vuelve a la estantería).
+- [ ] El puesto de combustible indica si el combustible va en la lanzadera o en el envío; cambiar el tanque de transferencia invalida la autorización si cambia el destino.
+
+### AF4. Despegue con la lanzadera preparada
+- [ ] Al embarcar: traslado desde el edificio a la plataforma con la MISMA lanzadera (mismos refuerzos, tanque y bodega), después acceso por el brazo, compuerta, comprobación (incluye la línea de la L-4), cuenta atrás, encendido, ascenso y llegada.
+- [ ] Probar al menos con «sin nada» y con «bodega grande + tanque de 2 tramos + 4 refuerzos».
+- [ ] La omisión (Espacio/Intro, a partir de la segunda vez) sigue funcionando sin cambiar costes ni requisitos.
+- [ ] En ExpedicionMVP, las tarjetas de llegada dicen qué subió en la L-4 y qué en el envío orbital, y la configuración de la L-4.
+- [ ] Volver al hangar: la configuración de la lanzadera se conserva y la carga vuelve a estar por preparar.
+

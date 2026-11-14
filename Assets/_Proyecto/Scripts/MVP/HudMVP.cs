@@ -249,9 +249,16 @@ namespace PrototipoMision
 
             GUILayout.Space(6f);
             GUILayout.Label("ENVÍO DESDE TIERRA", sTitulo);
-            GUILayout.Label(r.enviaDesdeTierra ? "Un solo envío con: " + string.Join(", ", r.enviado) + ". Se instala antes de que llegue la tripulación."
-                                               : "No se envía nada: la nave sale con lo que ya tiene a bordo (sin cargo de transporte).", sPequeno);
-            GUILayout.Label("La lanzadera L-4 tiene configuración fija y recursos propios, separados de los de la EM-4X.\n" +
+            ResumenLanzadera rl = r.lanzadera;
+            GUILayout.Label(!r.enviaDesdeTierra ? "No se envía nada: la nave sale con lo que ya tiene a bordo (sin cargo de transporte)."
+                            : rl == null ? "Se envía: " + string.Join(", ", r.enviado) + "."
+                            : (rl.envioOrbital ? "Envío orbital sin tripulación: " + string.Join(", ", rl.enEnvio) + ". " : "Sin envío orbital aparte. ") +
+                              (rl.enLanzadera.Count > 0 ? "En la lanzadera L-4: " + string.Join(", ", rl.enLanzadera) + ". " : "") +
+                              "Todo se instala o se carga antes de que llegue la tripulación.", sPequeno);
+            GUILayout.Label((rl != null ? $"Lanzadera L-4: {DatosLanzadera.Resumen(rl.eleccion)} · masa extra {rl.masaExtraKg:0} de {rl.capacidadKg:0} kg. " +
+                                          "Se configura en el hangar terrestre (zona B · Integración); aquí se usa tal cual. "
+                                        : "") +
+                            "Sus recursos son suyos, separados de los de la EM-4X.\n" +
                             "<i>Pendiente como ingeniería del mundo: cómo se transportó y montó el nodo central de 10 m.</i>", sPequeno);
 
             GUILayout.FlexibleSpace();
@@ -283,7 +290,9 @@ namespace PrototipoMision
             {
                 GUILayout.Label("1 · ENVÍO E INSTALACIÓN", sGrande);
                 GUILayout.Label(r.enviaDesdeTierra
-                    ? "Un transporte de carga ha llevado a la órbita: " + string.Join(", ", r.enviado) + ".\n\n" +
+                    ? (r.lanzadera == null ? "Un transporte de carga ha llevado a la órbita: " + string.Join(", ", r.enviado) + ".\n\n"
+                       : (r.lanzadera.envioOrbital ? "Un envío orbital sin tripulación ha llevado: " + string.Join(", ", r.lanzadera.enEnvio) + ".\n" : "No ha hecho falta envío orbital aparte.\n") +
+                         (r.lanzadera.enLanzadera.Count > 0 ? "La lanzadera L-4 sube con la tripulación: " + string.Join(", ", r.lanzadera.enLanzadera) + ".\n" : "") + "\n") +
                       (r.sustituciones > 0 ? $"El equipo de la base ha instalado {r.sustituciones} componente(s) en la EM-4X. " : "") +
                       "Todo está a bordo antes de que llegue la tripulación."
                     : "No se ha enviado nada desde tierra. La EM-4X sale con el equipo y el combustible que ya tenía.", sTexto);
@@ -295,7 +304,8 @@ namespace PrototipoMision
                 GUILayout.Label((ExpedicionActual.DespegueMostrado
                                     ? "La lanzadera L-4 que acabas de ver despegar alcanza la órbita de la base y atraca bajo el módulo de Mando de la EM-4X.\n\n"
                                     : "La lanzadera L-4 despega desde tierra con la tripulación, alcanza la órbita de la base y atraca bajo el módulo de Mando de la EM-4X.\n\n") +
-                                "La lanzadera tiene configuración fija en este MVP: su combustible y sus recursos son suyos y no se mezclan con los de la EM-4X.", sTexto);
+                                (r.lanzadera != null ? "Configuración de la L-4: " + DatosLanzadera.Resumen(r.lanzadera.eleccion) + ".\n" : "") +
+                                "Su combustible y sus recursos son suyos y no se mezclan con los de la EM-4X.", sTexto);
                 GUILayout.Label(ExpedicionActual.DespegueMostrado
                     ? "<i>(Mensaje de transición: el ascenso y el atraque no se simulan.)</i>"
                     : "<i>(Mensaje de transición: el despegue terrestre existe aparte en el hangar terrestre y en la escena Nave.)</i>", sPequeno);

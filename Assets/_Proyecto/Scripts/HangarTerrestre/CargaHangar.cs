@@ -11,6 +11,8 @@ namespace PrototipoMision
         /// <summary>Huella de lo elegido: si la selección cambia, la preparación de ESTE lote deja de valer.</summary>
         public string firma;
         public bool preparado;
+        /// <summary>true = viaja en la lanzadera L-4 (se entrega en el muelle de integración); false = envío orbital.</summary>
+        public bool enLanzadera;
     }
 
     /// <summary>
@@ -44,26 +46,31 @@ namespace PrototipoMision
             int tramos = Mathf.Clamp(p.tramosCombustible, 0, BalanceEM4X.MaximoTramos(r.tanque));
             int sum = Mathf.Clamp(p.suministrosExtra, 0, BalanceEM4X.MaximoSuministrosExtra);
             int kits = Mathf.Clamp(p.kitsExtra, 0, BalanceEM4X.MaximoKitsExtra);
-            void Lote(string id, string nombre, int n, string detalle, string firma)
+            ResumenLanzadera rl = r.lanzadera;
+            void Lote(string id, string nombre, int n, string detalle, string firma, bool enLanzadera)
             {
                 if (n <= 0) { preparados.Remove(id); return; }   // al volver a pedirlo hay que prepararlo otra vez
-                LoteCarga lo = new LoteCarga { id = id, nombre = nombre, cantidad = n, detalle = detalle, firma = firma };
+                // El destino forma parte de la huella: si cambia la lanzadera y el lote cambia de vehículo, hay que volver a prepararlo.
+                firma += enLanzadera ? "|L" : "|E";
+                detalle += enLanzadera ? "\nviaja en la lanzadera L-4" : "\nviaja en el envío orbital";
+                LoteCarga lo = new LoteCarga { id = id, nombre = nombre, cantidad = n, detalle = detalle, firma = firma, enLanzadera = enLanzadera };
                 string f;
                 lo.preparado = preparados.TryGetValue(id, out f) && f == firma;
                 l.Add(lo);
             }
             Lote("combustible", "Combustible", tramos, $"{tramos} × {BalanceEM4X.TramoCombustibleKg:0} kg = {tramos * BalanceEM4X.TramoCombustibleKg:0} kg",
-                 $"{tramos}|{p.tanque}");
-            Lote("suministros", "Suministros", sum, $"{sum} unidades (+{sum * BalanceEM4X.SegundosPorSuministro / 60f:0} min de soporte vital)", sum.ToString());
-            Lote("kits", "Kits de reparación", kits, $"{kits} kits (además de los {BalanceEM4X.KitsABordo} que ya hay a bordo)", kits.ToString());
-            Lote("sonda", "Sonda de despliegue", p.sonda ? 1 : 0, "1 sonda (sonda base del catálogo)", "1");
+                 $"{tramos}|{p.tanque}", rl != null && rl.combustibleEnLanzadera);
+            bool pequena = rl != null && rl.cargaPequenaEnLanzadera;
+            Lote("suministros", "Suministros", sum, $"{sum} unidades (+{sum * BalanceEM4X.SegundosPorSuministro / 60f:0} min de soporte vital)", sum.ToString(), pequena);
+            Lote("kits", "Kits de reparación", kits, $"{kits} kits (además de los {BalanceEM4X.KitsABordo} que ya hay a bordo)", kits.ToString(), pequena);
+            Lote("sonda", "Sonda de despliegue", p.sonda ? 1 : 0, "1 sonda (sonda base del catálogo)", "1", pequena);
             List<string> piezas = new List<string>();
             if (p.motor > 0 && r.motor != null) piezas.Add(r.motor.nombre);
             if (p.tanque > 0 && r.tanque != null) piezas.Add(r.tanque.nombre);
             if (p.instrumento > 0 && r.instrumento != null) piezas.Add(r.instrumento.nombre);
             if (p.relevo > 0 && r.relevo != null) piezas.Add(r.relevo.nombre);
             Lote("componentes", "Componentes de sustitución", piezas.Count, string.Join("\n", piezas),
-                 $"{p.motor}|{p.tanque}|{p.instrumento}|{p.relevo}");
+                 $"{p.motor}|{p.tanque}|{p.instrumento}|{p.relevo}", false);   // componentes: siempre envío orbital
             return l;
         }
 

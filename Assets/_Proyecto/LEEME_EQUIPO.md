@@ -5,6 +5,7 @@
 > - **MVP sin hangar (pruebas):** *Prototipo → Juego → 4. Abrir ExpedicionMVP*.
 > - **Para importar modelos:** *Prototipo → Arte y pruebas → 4. Abrir ModeloPrueba (IMPORTAR MODELOS)* (si aún no existe: *Arte y pruebas → 2. Crear escena ModeloPrueba*).
 > - **Ejecutable:** *Prototipo → Juego → 6. Generar el ejecutable completo (Windows)*.
+> - **Zonas del hangar:** A · nave orbital EM-4X (holograma, terminales 1–2) · B · integración de la lanzadera L-4 (edificio a la derecha, consola B) · C · carga (carro, estanterías, combustible) · D · embarque (al fondo).
 > - Los menús se reorganizaron: la tabla de equivalencias (números antiguos → nuevos) está en «Escenas del proyecto y menú Prototipo», al final.
 
 Nombre del proyecto provisional: `PrototipoMisionSonda`.
@@ -992,4 +993,36 @@ Revisado: escenas en `Assets/_Proyecto/Scenes`, rutas en código (`CargadorEscen
 | — | Arte y pruebas → 4. Abrir ModeloPrueba; Abrir escenas de prueba/… |
 | 12, 13, 14, 15 | Arte y pruebas → Crear escenas de prueba/… |
 | 1–11 y Muestra visual | Prototipos antiguos (no usar sin copia)/… (mismos nombres y números) |
+
+## Lanzadera L-4 configurable y edificio de integración (13-11-2026)
+
+Ampliación sobre la versión entregada (copia: `CopiasSeguridad/Copia_entregada_preparacion_dinamica_2026-11-13.zip`). El holograma azul de la EM-4X, la carga, el combustible, el presupuesto y la secuencia de despegue se conservan. Estado: **escrito y revisado por lectura; sin compilar ni ejecutar.** Pruebas: sección AF de `PRUEBAS_ACEPTACION.md` (AE1–AE9 siguen pendientes).
+
+**Qué representaba la lanzadera antes:** no tenía datos propios. Solo existían la tarifa fija «Lanzamiento de la tripulación» (18 M) y un bloque visual en el despegue. La carga desde tierra viaja en un **envío orbital sin tripulación** (10 M si se envía algo).
+
+**Ahora (zona B, edificio de integración junto al hangar, misma escena):** tres tipos de pieza con tres alternativas. Todos los valores son de DEMOSTRACIÓN (reglas de juego, no prestaciones validadas). La opción 0 de cada tipo es la L-4 de siempre, incluida en los 18 M: sin tocar la lanzadera, los costes son exactamente los de antes.
+
+| Pieza | Alternativas | Efecto jugable |
+|---|---|---|
+| Bodega de carga | sin · pequeña (300 kg, pesa 200 kg, 1,5 M) · grande (800 kg, pesa 400 kg, 3 M) | Si TODA la carga pequeña (suministros extra, kits extra y sonda) cabe, viaja en la L-4 y se entrega con el carro en el **muelle** (zona B), no en la zona de envío. |
+| Tanque de transferencia | sin · 1 tramo (3000 kg, pesa 500 kg, 2 M) · 2 tramos (6000 kg, pesa 800 kg, 3,5 M) | Si TODO el combustible encargado cabe, viaja en la L-4 (el puesto de combustible lo indica). |
+| Propulsores de refuerzo | sin (1000 kg extra) · 2 (4000 kg, 4 M) · 4 (8000 kg, 8 M) | Masa extra = bodega y tanque (aunque vayan vacíos) + lo que llevan. Si se supera, **no se puede cerrar la preparación**, y en la consola B no se deja confirmar una pieza que la supere. |
+
+Reglas de dinero: el envío orbital (10 M) solo se cobra si queda algo que no viaja en la L-4. Los componentes de la EM-4X (motor, tanque, instrumento, relevo) van **siempre** en el envío orbital. Las opciones de la L-4 se cobran en su propia partida. Las tarifas y el presupuesto no cambian. Hay avisos para las opciones que no aportan nada: una bodega vacía, carga que no cabe, refuerzos de más o un envío que sigue haciendo falta. **Sin efecto en el vuelo:** la L-4 no cambia el Δv, la masa ni el combustible de la EM-4X.
+
+**Interacción:**
+- Entra por el paso de la pared derecha del hangar (zona B) y pulsa E en la consola B.
+- Pestañas BODEGA / TANQUE TRANSF. / REFUERZOS: resaltan la pieza.
+- Pulsar una alternativa la previsualiza: el puente grúa retira la pieza y coloca la nueva, guiado y sin física. El panel compara el coste total, la masa extra frente a la capacidad y qué viaja dónde.
+- «CONFIRMAR ESTA PIEZA» cambia la configuración. Esc descarta la previsualización.
+- Las piezas grandes se cambian solo aquí. El carro sigue siendo para los lotes pequeños.
+
+**Despegue:** usa la configuración CONFIRMADA (el mismo `ModeloLanzadera` que la integración). Orden: traslado desde el edificio de integración a la plataforma → acceso y embarque → cierre de compuerta → comprobación → cuenta atrás → encendido → ascenso → llegada a la EM-4X. Se puede omitir igual que antes.
+
+**Archivos:**
+- Nuevos: `Scripts/MVP/DatosLanzadera.cs` (datos y reglas), `Scripts/HangarTerrestre/ModeloLanzadera.cs` (geometría provisional), `Scripts/HangarTerrestre/IntegracionLanzadera.cs` (vista, grúa, previsualización).
+- Modificados: `BalanceEM4X.cs` (configuración de la lanzadera separada dentro de la preparación, con copia completa; cálculo, partidas y avisos), `HudMVP.cs`, `CargaHangar.cs` (destino de cada lote), `HangarTerrestre.cs` (edificio, paso en la pared este, muelle, consola B, carteles A–D), `HudHangarTerrestre.cs` (panel de integración), `SecuenciaDespegue.cs` (lanzadera configurada y traslado).
+- Guía de modelado: apartado 12 (lanzadera y edificio). El encargo de Ciencia no cambia.
+
+No hace falta escena nueva: el edificio está en HangarExpedicion, así que el recorrido y el ejecutable no cambian.
 

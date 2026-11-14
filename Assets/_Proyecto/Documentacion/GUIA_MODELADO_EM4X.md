@@ -292,3 +292,48 @@ Por prioridad. El orden es el de cada lista; «Independiente» indica si se pued
 2. Zona de embarque y maqueta u holograma de la EM-4X: después de la versión provisional.
 
 Las piezas que usan las misiones son las de B1–B4 y C1, y van antes que la decoración.
+
+## 12. Apartado separado · Lanzadera L-4 y edificio de integración (13-11-2026)
+
+**No cambia el encargo actual:** el módulo de Ciencia (secciones 2–10) sigue siendo la prioridad y sus medidas no cambian. Este apartado es un encargo **posterior y separado**. La lanzadera L-4 es el vehículo **terrestre** que sube a la tripulación. No es la EM-4X, que está en órbita.
+
+**Estado:** el juego ya tiene una versión con **geometría provisional** (escena HangarExpedicion, zona B). Las medidas están **leídas del código** (`Scripts/HangarTerrestre/ModeloLanzadera.cs` y `HangarTerrestre.cs`, `ConstruirIntegracion`). **Todavía no hay punto de sustitución** para estos modelos: se guardan en `Assets/_Arte/Hangar/Lanzadera/` y `Assets/_Arte/Hangar/Integracion/` y los conectará el integrador en un incremento posterior. Hasta entonces, solo bocetos o bloques.
+
+**Referencia visual:** la imagen del edificio de montaje vertical (vehículo de pie, nave industrial alta, estructuras metálicas, plataformas, pasarelas, iluminación de trabajo y escala) es solo de **ambiente y composición**. No se copian el vehículo, sus marcas ni sus medidas. **Sin logotipos ni marcas reales** (ni de NASA ni de otras agencias).
+
+### Lanzadera L-4 · piezas separadas (Y arriba, metros, pivote en el centro de la base de cada pieza)
+
+La lanzadera es modular porque el jugador cambia tres tipos de pieza. Cada alternativa es un objeto **aparte**.
+
+| Pieza | Nombre de archivo | Medidas provisionales | Notas |
+|---|---|---|---|
+| Etapa principal | `L4_EtapaPrincipal_v01` | cilindro Ø 5 × 18 m; toberas Ø 3,2 × 1 m bajo la base | Origen = base de la etapa. Siempre presente. |
+| Propulsor de refuerzo | `L4_Refuerzo_v01` | Ø 1,8 × 14 m + morro Ø 1,3 × 1,2 m + tobera Ø 1,2 × 0,8 m | Uno solo; el juego lo coloca 0, 2 (a los lados, eje ±Z) o 4 veces (a 45°), a 3,55 m del eje. |
+| Tanque de transferencia (1 tramo) | `L4_TanqueTransf_1_v01` | Ø 5 × 3 m | Encima de la etapa. |
+| Tanque de transferencia (2 tramos) | `L4_TanqueTransf_2_v01` | Ø 5 × 5 m | Encima de la etapa. |
+| Bodega pequeña | `L4_Bodega_Pequena_v01` | Ø 5 × 2,5 m, compuerta 2,4 m de ancho en +Z | Encima del tanque (o de la etapa si no hay tanque). |
+| Bodega grande | `L4_Bodega_Grande_v01` | Ø 5 × 4 m, compuerta igual | Igual que la pequeña. |
+| Adaptador | `L4_Adaptador_v01` | Ø 4,4 × 1 m | Entre la pila y la cápsula. |
+| Cápsula | `L4_Capsula_v01` | cuerpo Ø 4,4 × 3,2 m + hombro Ø 3,2 × 0,8 m + morro Ø 2 × 0,5 m | Escotilla 1,2 × 1,8 m en **−Z** (lado del brazo de acceso); ventanas en +Z. |
+| Torre de escape | `L4_TorreEscape_v01` | Ø 0,5 × 3 m | Encima de la cápsula. |
+| Cabina interior | `L4_Cabina_v01` | caja interior 3,6 × 2,8 × 2,8 m, un asiento, consola, compuerta lateral | Se ve desde el asiento en la secuencia de despegue; ventana en el techo. |
+
+Alturas: la pila se apila sin huecos, así que la altura total va de **26,5 m** (sin tanque ni bodega) a **35,5 m** (tanque de 2 tramos y bodega grande). Las piezas no deben sobresalir de Ø 5 m, salvo los refuerzos.
+
+### Edificio de integración (zona B del hangar) · piezas
+
+| Pieza | Nombre | Medidas provisionales |
+|---|---|---|
+| Nave del edificio | `INT_Nave_v01` | interior 32 × 36 m, 46 m de alto. Paso desde el hangar de 10 m de ancho × 9 m de alto en la pared oeste. |
+| Plataforma de la lanzadera | `INT_Plataforma_v01` | 12 × 12 × 2 m. El vehículo apoya encima. |
+| Torre de servicio | `INT_Torre_v01` | 3 × 3 × 40 m. Hay dos, a 8,5 m del eje del vehículo (norte y sur). |
+| Plataforma de trabajo | `INT_PlataformaTrabajo_v01` | 6 m de ancho, a 10, 18, 26 y 34 m. **Debe acabar a 4,7 m del eje** para dejar sitio a los refuerzos. |
+| Pasarela de acceso | `INT_Pasarela_v01` | 1,6 m de ancho, a 18 y 26 m, de la pared oeste a la torre sur |
+| Puente grúa | `INT_PuenteGrua_v01` | viga 1,2 × 1,4 × 34 m a 42 m de altura, con carro y gancho separados (se mueven en la animación). |
+| Focos de trabajo | `INT_Foco_v01` | pequeños; luz cálida |
+| Consola B | `INT_Consola_v01` | como las terminales del hangar (pedestal 1,2 × 1,1 × 0,6 m) |
+| Muelle de la bodega | `INT_Muelle_v01` | 6 × 6 m en el suelo; ahí se dejan los contenedores que viajan en la L-4 |
+
+**Espacios libres:** alrededor del vehículo, un cilindro de 4,7 m de radio sin estructuras (refuerzos y animación de la grúa). Sobre el vehículo, el recorrido del gancho hasta 42 m. En el suelo, el paso del hangar y el camino del carro hasta el muelle.
+
+**Prioridad del apartado:** 1) cápsula y etapa principal; 2) un refuerzo, las dos bodegas y los dos tanques; 3) torre, plataforma y plataformas de trabajo; 4) puente grúa, pasarelas y nave del edificio. Todo **después** del módulo de Ciencia.
