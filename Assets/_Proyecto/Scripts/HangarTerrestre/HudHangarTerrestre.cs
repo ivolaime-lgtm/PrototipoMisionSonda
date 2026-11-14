@@ -124,6 +124,7 @@ namespace PrototipoMision
                 case EstacionHangar.Estanteria: return h.Carro != null && h.Carro.Empujando ? "E: cargar el contenedor en el carro · " : "E: consultar · ";
                 case EstacionHangar.Holograma: return "E: consultar y comparar · ";
                 case EstacionHangar.Integracion: return "E: elegir y comparar piezas · ";
+                case EstacionHangar.Soporte: return "E: preparar y cargar en el VC-1 · ";
                 default: return "E: usar · ";
             }
         }
@@ -287,8 +288,9 @@ namespace PrototipoMision
             PreparacionExpedicion b = h.Borrador;
             GUILayout.Label("3 · CARGA DE LA EXPEDICIÓN (manifiesto)", sGrande);
             GUILayout.Label("Elige aquí cuánto se envía. Después lleva cada lote con el CARRO: empújalo (E en su asa), acércalo a la estantería y " +
-                            "pulsa E para fijar el contenedor. Según la lanzadera, cada lote se entrega en la ZONA DE ENVÍO ORBITAL (amarilla, zona C) " +
-                            "o en el MUELLE DE LA LANZADERA (verde, zona B); al llegar al sitio correcto queda LISTO. " +
+                            "pulsa E para fijar el contenedor. Según la lanzadera, cada lote se entrega en la ENTREGA AL VC-1 (amarilla, zona C2, al fondo a la izquierda) " +
+                            "o en el MUELLE DE LA LANZADERA (verde, zona B); al llegar al sitio correcto queda LISTO. Los componentes de la EM-4X no van en el carro: " +
+                            "aparecen en su soporte de la zona C2 y se preparan con E (la grúa los carga en el VC-1). " +
                             "Cada lote es un solo contenedor con todas sus unidades. Preparar no crea más carga ni se cobra otra vez: confirma lo presupuestado.", sPequeno);
             Bloqueo();
             int s = Contador("Suministros extra", b.suministrosExtra, BalanceEM4X.MaximoSuministrosExtra,
@@ -306,7 +308,9 @@ namespace PrototipoMision
             if (h.Lotes.Count == 0) GUILayout.Label("No se envía nada desde tierra con la selección actual.", sBien);
             foreach (LoteCarga lo in h.Lotes)
             {
-                string como = lo.id == "combustible" ? "autorizar en el puesto de combustible" : h.Carro != null && h.Carro.Lote == lo.id ? "EN EL CARRO"
+                string como = lo.id == "combustible" ? "autorizar en el puesto de combustible"
+                            : CargaHangar.EsComponente(lo.id) ? "E en su soporte de la zona C2 → la grúa lo carga en el VC-1"
+                            : h.Carro != null && h.Carro.Lote == lo.id ? "EN EL CARRO"
                             : lo.enLanzadera ? "carro → muelle de la lanzadera (B)" : "carro → zona de envío orbital (C)";
                 GUILayout.Label($"{(lo.preparado ? "<color=#59CC73>[x] PREPARADO</color>" : $"<color=#FFB040>[ ] POR PREPARAR · {como}</color>")} · <b>{lo.nombre}</b>: {lo.detalle.Replace("\n", ", ")}", sTexto);
             }
@@ -351,10 +355,14 @@ namespace PrototipoMision
         void Embarque()
         {
             GUILayout.Label("5 · EMBARQUE · LANZADERA L-4", sGrande);
-            GUILayout.Label("La lanzadera L-4 (terrestre) lleva a la tripulación hasta la EM-4X, que espera en órbita. Se muestra una secuencia breve " +
-                            "de traslado a la plataforma, embarque, cuenta atrás y ascenso (no pilotable) con la lanzadera tal como se confirmó en la integración, " +
-                            "y se llega al interior de la EM-4X. " +
-                            (SecuenciaDespegue.PuedeOmitirse ? "Ya la has visto: podrás omitirla con Espacio o Intro." : "La primera vez se ve entera; después podrá omitirse."), sPequeno);
+            ResumenExpedicion re = h.Resumen;
+            bool envio = re.transporte != null && re.transporte.necesario;
+            GUILayout.Label((envio ? "Primero se despacha el VC-1 (transporte orbital no tripulado): lanzamiento desde su plataforma exterior, llegada a la zona de servicio " +
+                                     "e instalación de lo encargado en la EM-4X. "
+                                   : "No hace falta envío orbital: no despega ningún transporte no tripulado. ") +
+                            "Después, la L-4 (terrestre) con la configuración confirmada: carga, traslado, embarque, cuenta atrás, ascenso y atraque en la EM-4X; " +
+                            "terminas a bordo, controlando al personaje. No es pilotable. " +
+                            (SecuenciaDespegue.PuedeOmitirse ? "Las partes ya vistas se pueden omitir con Espacio o Intro (el resultado es el mismo)." : "La primera vez se ve entera; después se podrá omitir."), sPequeno);
             bool listo = true;
             foreach (HangarTerrestre.Requisito q in h.Requisitos())
             {

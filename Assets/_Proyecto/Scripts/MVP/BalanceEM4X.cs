@@ -75,6 +75,8 @@ namespace PrototipoMision
         public bool enviaDesdeTierra;
         /// <summary>Lanzadera L-4: qué lleva, masa, capacidad y si sigue haciendo falta el envío orbital.</summary>
         public ResumenLanzadera lanzadera;
+        /// <summary>Transporte orbital no tripulado VC-1: qué lleva y si cabe (límites de demostración).</summary>
+        public ResumenTransporte transporte;
         public readonly List<string> enviado = new List<string>();
         public readonly List<string> problemas = new List<string>();
         public readonly List<string> avisos = new List<string>();
@@ -360,6 +362,7 @@ namespace PrototipoMision
             (rl.cargaPequenaEnLanzadera ? rl.enLanzadera : rl.enEnvio).AddRange(pequena);
             if (tramos > 0) (rl.combustibleEnLanzadera ? rl.enLanzadera : rl.enEnvio).Add($"{tramos * TramoCombustibleKg:0} kg de combustible");
             rl.envioOrbital = rl.enEnvio.Count > 0;
+            r.transporte = DatosTransporteOrbital.Evaluar(p, r, rl, masaSonda);
 
             if (rl.envioOrbital)
                 Linea("Envío orbital sin tripulación", "Un envío con lo que no viaja en la lanzadera: " + string.Join(", ", rl.enEnvio) + " (cargo fijo)", TarifaTransporteOrbitalMUSD);
@@ -382,6 +385,9 @@ namespace PrototipoMision
                 r.problemas.Add("Esta misión despliega una sonda: hay que incluir la sonda de despliegue.");
             if (r.instrumento.datosPorEscaneoMB > r.memoriaMB)
                 r.problemas.Add($"La memoria ({r.memoriaMB:0} MB) no admite ni una captura de {r.instrumento.nombre}.");
+            if (r.transporte != null && r.transporte.necesario)
+                foreach (string mo in r.transporte.motivos)
+                    r.problemas.Add("No se puede despachar el transporte orbital no tripulado: " + mo);
             if (rl.CapacidadSuperada)
                 r.problemas.Add($"La lanzadera L-4 tendría que subir {rl.masaExtraKg:0} kg extra y con «{rl.refuerzos.nombre}» solo puede {rl.capacidadKg:0} kg: " +
                                 "pon más refuerzos o quita bodega, tanque o carga.");

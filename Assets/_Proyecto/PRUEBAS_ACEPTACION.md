@@ -620,100 +620,153 @@ En `CirculacionPrueba`, Play:
 
 ## AE. Preparación dinámica, holograma, carro, combustible, despegue, escenas y ejecutable — 13-11-2026
 
-**Estado: PENDIENTES.** Código escrito y revisado por lectura; no compilado ni ejecutado. AD1–AD12 siguen valiendo solo para la versión de `Copia_funcional_hangar_validado_2026-11-13.zip`. Nota: los menús antiguos citados en secciones anteriores (16, 17, 18, 19…) tienen ahora la ruta de la tabla de `LEEME_EQUIPO.md`.
+**Estado: AE1–AE9 SUPERADAS — confirmadas por el usuario el 13-11-2026 (compilado y probado en Unity) sobre la versión guardada en `CopiasSeguridad/Copia_validada_AE_AF_2026-11-13.zip`.** Los cambios posteriores (sección AG) necesitan pruebas nuevas. Nota: los menús antiguos citados en secciones anteriores (16, 17, 18, 19…) tienen ahora la ruta de la tabla de `LEEME_EQUIPO.md`.
 
 Preparación común: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play. Primero comprobar que la consola no muestra errores de compilación.
 
 ### AE1. Tres alternativas y persistencia de la selección
-- [ ] Terminal 2: motor, tanque e instrumento muestran 3 opciones cada uno, con empuje/consumo/masa/precio (motor), capacidad/masa/precio (tanque) y consumo/datos/utilidad por misión (instrumento).
-- [ ] Elegir «Tanque ligero» con 6 tramos: los tramos bajan a 3 y aparece el aviso de cambio de velocidad si no alcanza.
-- [ ] Elegir el sensor de diagnóstico con la misión K-2: sin aviso de instrumento; con otra misión, aviso de no recomendado.
-- [ ] Salir y volver a entrar en la terminal: la selección se conserva. Tras embarcar, la llegada muestra esas mismas piezas (AE7).
+- [x] Terminal 2: motor, tanque e instrumento muestran 3 opciones cada uno, con empuje/consumo/masa/precio (motor), capacidad/masa/precio (tanque) y consumo/datos/utilidad por misión (instrumento).
+- [x] Elegir «Tanque ligero» con 6 tramos: los tramos bajan a 3 y aparece el aviso de cambio de velocidad si no alcanza.
+- [x] Elegir el sensor de diagnóstico con la misión K-2: sin aviso de instrumento; con otra misión, aviso de no recomendado.
+- [x] Salir y volver a entrar en la terminal: la selección se conserva. Tras embarcar, la llegada muestra esas mismas piezas (AE7).
 
 ### AE2. Holograma
-- [ ] E delante de la mesa central → vista propia; botón derecho + arrastrar y flechas giran; la rueda acerca solo fuera del panel.
-- [ ] Pestañas MOTOR/TANQUE/INSTRUMENTO resaltan el módulo correspondiente en amarillo.
-- [ ] Pulsar una alternativa: la pieza actual se separa, entra la nueva (color distinto) y aparece la comparación. El presupuesto de la banda superior NO cambia.
-- [ ] «Volver a la pieza actual» y Esc descartan la previsualización sin cambiar nada.
-- [ ] «ENCARGAR ESTE CAMBIO» cambia la selección (la terminal 2 la muestra igual) y el total se recalcula una sola vez.
-- [ ] Con la preparación cerrada, «Encargar» está desactivado y se indica reabrirla.
+- [x] E delante de la mesa central → vista propia; botón derecho + arrastrar y flechas giran; la rueda acerca solo fuera del panel.
+- [x] Pestañas MOTOR/TANQUE/INSTRUMENTO resaltan el módulo correspondiente en amarillo.
+- [x] Pulsar una alternativa: la pieza actual se separa, entra la nueva (color distinto) y aparece la comparación. El presupuesto de la banda superior NO cambia.
+- [x] «Volver a la pieza actual» y Esc descartan la previsualización sin cambiar nada.
+- [x] «ENCARGAR ESTE CAMBIO» cambia la selección (la terminal 2 la muestra igual) y el total se recalcula una sola vez.
+- [x] Con la preparación cerrada, «Encargar» está desactivado y se indica reabrirla.
 
 ### AE3. Costes sin duplicación
-- [ ] Anotar el total. Encargar motor A → B → A: el total vuelve exactamente al inicial.
-- [ ] Preparar, llevar y entregar todos los lotes y autorizar el combustible: el total no cambia.
-- [ ] Cerrar, reabrir y volver a cerrar: el total no cambia y las selecciones se conservan.
+- [x] Anotar el total. Encargar motor A → B → A: el total vuelve exactamente al inicial.
+- [x] Preparar, llevar y entregar todos los lotes y autorizar el combustible: el total no cambia.
+- [x] Cerrar, reabrir y volver a cerrar: el total no cambia y las selecciones se conservan.
 
 ### AE4. Carga con carro y cambio posterior
-- [ ] Con la sonda y kits extra seleccionados, la estantería muestra un contenedor por lote con su cantidad; los lotes a 0 aparecen como «no hace falta».
-- [ ] E en el asa del carro → se empuja (más despacio). Delante de la estantería de kits, E → el contenedor pasa al carro y el rótulo dice «EN EL CARRO».
-- [ ] Intentar cargar otro lote con el carro lleno → mensaje, no se carga.
-- [ ] Entrar con el carro en la zona amarilla → lote LISTO, contenedor colocado en la zona, carro vacío.
-- [ ] Cambiar después la cantidad de kits → solo el lote de kits vuelve a su estantería y queda por preparar; los demás siguen LISTOS.
-- [ ] Cambiar la cantidad mientras el contenedor va en el carro → el contenedor vuelve a la estantería.
-- [ ] Empujar el carro contra una pared → «BLOQUEADO»; R lo devuelve a su base vacío y el lote que llevaba sigue por preparar.
-- [ ] El recorrido no se vuelve inestable (sin saltos ni objetos que salgan disparados).
+- [x] Con la sonda y kits extra seleccionados, la estantería muestra un contenedor por lote con su cantidad; los lotes a 0 aparecen como «no hace falta».
+- [x] E en el asa del carro → se empuja (más despacio). Delante de la estantería de kits, E → el contenedor pasa al carro y el rótulo dice «EN EL CARRO».
+- [x] Intentar cargar otro lote con el carro lleno → mensaje, no se carga.
+- [x] Entrar con el carro en la zona amarilla → lote LISTO, contenedor colocado en la zona, carro vacío.
+- [x] Cambiar después la cantidad de kits → solo el lote de kits vuelve a su estantería y queda por preparar; los demás siguen LISTOS.
+- [x] Cambiar la cantidad mientras el contenedor va en el carro → el contenedor vuelve a la estantería.
+- [x] Empujar el carro contra una pared → «BLOQUEADO»; R lo devuelve a su base vacío y el lote que llevaba sigue por preparar.
+- [x] El recorrido no se vuelve inestable (sin saltos ni objetos que salgan disparados).
 
 ### AE5. Puesto de combustible
-- [ ] Sin tramos: el puesto indica que no hay nada que autorizar y el combustible no aparece como pendiente.
-- [ ] Con tramos: «Autorizar» está desactivado hasta verificar la alimentación; tras autorizar, el indicador pasa a verde y el lote queda PREPARADO.
-- [ ] Cambiar los tramos o el tanque después → el combustible vuelve a quedar por autorizar.
+- [x] Sin tramos: el puesto indica que no hay nada que autorizar y el combustible no aparece como pendiente.
+- [x] Con tramos: «Autorizar» está desactivado hasta verificar la alimentación; tras autorizar, el indicador pasa a verde y el lote queda PREPARADO.
+- [x] Cambiar los tramos o el tanque después → el combustible vuelve a quedar por autorizar.
 
 ### AE6. Embarque bloqueado y despegue
-- [ ] Con algo pendiente (por ejemplo, combustible sin autorizar), el embarque lo indica y no inicia la secuencia.
-- [ ] Con todo listo: acceso, asiento, cierre de compuerta, comprobación, cuenta atrás, encendido, ascenso y llegada a la EM-4X. No se puede pilotar.
-- [ ] La primera vez Espacio no omite. Volver al hangar desde los resultados y embarcar otra vez: Espacio/Intro omiten la secuencia y se llega igual.
-- [ ] Omitir no cambia el total ni la configuración y no salta requisitos (el embarque sigue bloqueado si falta algo).
+- [x] Con algo pendiente (por ejemplo, combustible sin autorizar), el embarque lo indica y no inicia la secuencia.
+- [x] Con todo listo: acceso, asiento, cierre de compuerta, comprobación, cuenta atrás, encendido, ascenso y llegada a la EM-4X. No se puede pilotar.
+- [x] La primera vez Espacio no omite. Volver al hangar desde los resultados y embarcar otra vez: Espacio/Intro omiten la secuencia y se llega igual.
+- [x] Omitir no cambia el total ni la configuración y no salta requisitos (el embarque sigue bloqueado si falta algo).
 
 ### AE7. Llegada con la configuración correcta
-- [ ] En ExpedicionMVP no aparece otra preparación obligatoria; el informe de llegada lista la misión, piezas, combustible y carga elegidos en el hangar y el mismo total.
-- [ ] Probar al menos una vez con motor de alta eficiencia + tanque ligero + sensor de diagnóstico.
+- [x] En ExpedicionMVP no aparece otra preparación obligatoria; el informe de llegada lista la misión, piezas, combustible y carga elegidos en el hangar y el mismo total.
+- [x] Probar al menos una vez con motor de alta eficiencia + tanque ligero + sensor de diagnóstico.
 
 ### AE8. Nueva expedición sin estado residual
-- [ ] Terminar o volver al hangar: selecciones conservadas, preparación abierta, todos los lotes por preparar, contenedores en sus estanterías, carro en su base, combustible por autorizar.
-- [ ] Repetir la preparación completa y embarcar: sin cobros dobles ni lotes marcados de la expedición anterior.
-- [ ] Acceso directo: *Juego → 4. Abrir ExpedicionMVP* → Play sigue mostrando su propia preparación.
+- [x] Terminar o volver al hangar: selecciones conservadas, preparación abierta, todos los lotes por preparar, contenedores en sus estanterías, carro en su base, combustible por autorizar.
+- [x] Repetir la preparación completa y embarcar: sin cobros dobles ni lotes marcados de la expedición anterior.
+- [x] Acceso directo: *Juego → 4. Abrir ExpedicionMVP* → Play sigue mostrando su propia preparación.
 
 ### AE9. Menús, escenas y ejecutable
-- [ ] El menú Prototipo muestra tres grupos: Juego, Arte y pruebas, Prototipos antiguos (con todas las herramientas anteriores dentro).
-- [ ] Los menús «Abrir…» abren la escena sin modificarla; si no existe (ModeloPrueba antes de crearla), avisan.
-- [ ] *Juego → 6* genera `Ejecutable/ExpedicionEM4X_Completo/ExpedicionEM4X.exe`; el exe arranca en el hangar y embarcar abre la expedición. Se crea `CopiasSeguridad/ConfiguracionEjecutable_anterior.txt`.
-- [ ] En el ejecutable, «Volver al hangar terrestre» desde los resultados funciona.
-- [ ] *Juego → 7* sigue generando el ejecutable anterior (solo ExpedicionMVP).
+- [x] El menú Prototipo muestra tres grupos: Juego, Arte y pruebas, Prototipos antiguos (con todas las herramientas anteriores dentro).
+- [x] Los menús «Abrir…» abren la escena sin modificarla; si no existe (ModeloPrueba antes de crearla), avisan.
+- [x] *Juego → 6* genera `Ejecutable/ExpedicionEM4X_Completo/ExpedicionEM4X.exe`; el exe arranca en el hangar y embarcar abre la expedición. Se crea `CopiasSeguridad/ConfiguracionEjecutable_anterior.txt`.
+- [x] En el ejecutable, «Volver al hangar terrestre» desde los resultados funciona.
+- [x] *Juego → 7* sigue generando el ejecutable anterior (solo ExpedicionMVP).
 
 ## AF. Lanzadera L-4 configurable y edificio de integración — 13-11-2026
 
-**Estado: PENDIENTES.** Escrito y revisado por lectura; no compilado ni ejecutado. AE1–AE9 siguen pendientes. Abrir: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play.
+**Estado: AF1–AF4 SUPERADAS — confirmadas por el usuario el 13-11-2026 (compilado y probado en Unity) sobre la versión guardada en `CopiasSeguridad/Copia_validada_AE_AF_2026-11-13.zip`.** Los cambios posteriores (sección AG) necesitan pruebas nuevas. Abrir: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play.
 
 ### AF1. Bloque visual de la zona industrial
-- [ ] Desde la entrada, el cartel nombra las zonas A, B, C y D; en la pared derecha hay un paso con el cartel «B · INTEGRACIÓN DE LA LANZADERA L-4 →».
-- [ ] Se cruza el paso sin caer ni engancharse; el edificio es alto, con la lanzadera de pie sobre su plataforma, dos torres, plataformas, pasarelas, puente grúa y focos.
-- [ ] Desde el suelo se leen los rótulos BODEGA / TANQUE DE TRANSFERENCIA / PROPULSORES DE REFUERZO con la opción actual.
-- [ ] Rendimiento aceptable al mirar el edificio (anotar FPS reales; no se han medido).
+- [x] Desde la entrada, el cartel nombra las zonas A, B, C y D; en la pared derecha hay un paso con el cartel «B · INTEGRACIÓN DE LA LANZADERA L-4 →».
+- [x] Se cruza el paso sin caer ni engancharse; el edificio es alto, con la lanzadera de pie sobre su plataforma, dos torres, plataformas, pasarelas, puente grúa y focos.
+- [x] Desde el suelo se leen los rótulos BODEGA / TANQUE DE TRANSFERENCIA / PROPULSORES DE REFUERZO con la opción actual.
+- [x] Rendimiento aceptable al mirar el edificio (anotar FPS reales; no se han medido).
 
 ### AF2. Selección y previsualización
-- [ ] E en la consola B: vista propia; giro con botón derecho o flechas; la rueda acerca sin atravesar paredes.
-- [ ] Cada pestaña resalta su pieza en amarillo y muestra 3 alternativas con datos y efecto.
-- [ ] Pulsar una alternativa: la grúa saca la pieza y coloca la nueva (verde); el presupuesto de la banda superior NO cambia.
-- [ ] «Volver a la pieza actual» y Esc descartan; al salir la lanzadera vuelve a la configuración confirmada.
-- [ ] «CONFIRMAR ESTA PIEZA» cambia la representación, el rótulo y el total una sola vez.
-- [ ] El holograma azul de la EM-4X sigue igual y su selección no cambia al tocar la lanzadera (y al revés).
+- [x] E en la consola B: vista propia; giro con botón derecho o flechas; la rueda acerca sin atravesar paredes.
+- [x] Cada pestaña resalta su pieza en amarillo y muestra 3 alternativas con datos y efecto.
+- [x] Pulsar una alternativa: la grúa saca la pieza y coloca la nueva (verde); el presupuesto de la banda superior NO cambia.
+- [x] «Volver a la pieza actual» y Esc descartan; al salir la lanzadera vuelve a la configuración confirmada.
+- [x] «CONFIRMAR ESTA PIEZA» cambia la representación, el rótulo y el total una sola vez.
+- [x] El holograma azul de la EM-4X sigue igual y su selección no cambia al tocar la lanzadera (y al revés).
 
 ### AF3. Consecuencias de la configuración
-- [ ] Sin tocar la lanzadera, el total es el mismo que antes del incremento con la misma selección.
-- [ ] Misión 3 (sonda) con 1 kit extra y 0 tramos de combustible: bodega pequeña → la sonda y los kits viajan en la L-4, desaparece la línea del envío orbital y el total baja 10 − 1,5 = 8,5 M.
-- [ ] Con un componente de la EM-4X encargado, el envío orbital sigue cobrándose y aparece el aviso de que la L-4 no ahorra esa tarifa.
-- [ ] Con 2 tramos encargados y sin refuerzos, previsualizar el tanque de 2 tramos → la comparación marca «SUPERA LA CAPACIDAD» (6800 de 1000 kg) y el botón de confirmar está bloqueado. Con 4 refuerzos confirmados antes, se puede confirmar.
-- [ ] Con bodega o tanque confirmados, quitar los refuerzos que hacen falta también queda bloqueado (no se puede dejar la lanzadera sin capacidad).
-- [ ] Con bodega grande sin refuerzos, subir los kits o suministros hasta pasar de 1000 kg → problema de capacidad en la revisión y no se puede cerrar; bajarlos lo resuelve.
-- [ ] Refuerzos sin bodega ni tanque → aviso de gasto sin efecto.
-- [ ] Los lotes que viajan en la L-4 se entregan en el muelle verde (zona B); llevarlos a la zona amarilla da un mensaje (una sola vez) y no los marca. Y al revés.
-- [ ] Con un lote ya entregado, cambiar la bodega de forma que cambie de vehículo → el lote vuelve a quedar por preparar (su contenedor vuelve a la estantería).
-- [ ] El puesto de combustible indica si el combustible va en la lanzadera o en el envío; cambiar el tanque de transferencia invalida la autorización si cambia el destino.
+- [x] Sin tocar la lanzadera, el total es el mismo que antes del incremento con la misma selección.
+- [x] Misión 3 (sonda) con 1 kit extra y 0 tramos de combustible: bodega pequeña → la sonda y los kits viajan en la L-4, desaparece la línea del envío orbital y el total baja 10 − 1,5 = 8,5 M.
+- [x] Con un componente de la EM-4X encargado, el envío orbital sigue cobrándose y aparece el aviso de que la L-4 no ahorra esa tarifa.
+- [x] Con 2 tramos encargados y sin refuerzos, previsualizar el tanque de 2 tramos → la comparación marca «SUPERA LA CAPACIDAD» (6800 de 1000 kg) y el botón de confirmar está bloqueado. Con 4 refuerzos confirmados antes, se puede confirmar.
+- [x] Con bodega o tanque confirmados, quitar los refuerzos que hacen falta también queda bloqueado (no se puede dejar la lanzadera sin capacidad).
+- [x] Con bodega grande sin refuerzos, subir los kits o suministros hasta pasar de 1000 kg → problema de capacidad en la revisión y no se puede cerrar; bajarlos lo resuelve.
+- [x] Refuerzos sin bodega ni tanque → aviso de gasto sin efecto.
+- [x] Los lotes que viajan en la L-4 se entregan en el muelle verde (zona B); llevarlos a la zona amarilla da un mensaje (una sola vez) y no los marca. Y al revés.
+- [x] Con un lote ya entregado, cambiar la bodega de forma que cambie de vehículo → el lote vuelve a quedar por preparar (su contenedor vuelve a la estantería).
+- [x] El puesto de combustible indica si el combustible va en la lanzadera o en el envío; cambiar el tanque de transferencia invalida la autorización si cambia el destino.
 
 ### AF4. Despegue con la lanzadera preparada
-- [ ] Al embarcar: traslado desde el edificio a la plataforma con la MISMA lanzadera (mismos refuerzos, tanque y bodega), después acceso por el brazo, compuerta, comprobación (incluye la línea de la L-4), cuenta atrás, encendido, ascenso y llegada.
-- [ ] Probar al menos con «sin nada» y con «bodega grande + tanque de 2 tramos + 4 refuerzos».
-- [ ] La omisión (Espacio/Intro, a partir de la segunda vez) sigue funcionando sin cambiar costes ni requisitos.
-- [ ] En ExpedicionMVP, las tarjetas de llegada dicen qué subió en la L-4 y qué en el envío orbital, y la configuración de la L-4.
-- [ ] Volver al hangar: la configuración de la lanzadera se conserva y la carga vuelve a estar por preparar.
+- [x] Al embarcar: traslado desde el edificio a la plataforma con la MISMA lanzadera (mismos refuerzos, tanque y bodega), después acceso por el brazo, compuerta, comprobación (incluye la línea de la L-4), cuenta atrás, encendido, ascenso y llegada.
+- [x] Probar al menos con «sin nada» y con «bodega grande + tanque de 2 tramos + 4 refuerzos».
+- [x] La omisión (Espacio/Intro, a partir de la segunda vez) sigue funcionando sin cambiar costes ni requisitos.
+- [x] En ExpedicionMVP, las tarjetas de llegada dicen qué subió en la L-4 y qué en el envío orbital, y la configuración de la L-4.
+- [x] Volver al hangar: la configuración de la lanzadera se conserva y la carga vuelve a estar por preparar.
 
+
+## AG. Estación A compacta, cubierta abovedada, transporte VC-1 y recorrido visual — 13-11-2026
+
+**Estado: PENDIENTES.** Escrito y revisado por lectura; no compilado ni ejecutado. AE y AF siguen validadas solo para `Copia_validada_AE_AF_2026-11-13.zip`. Abrir: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play. Antes, comprobar que la consola no muestra errores de compilación.
+
+### AG1. Organización y circulación junto al holograma
+- [ ] La estación A se reconoce como una sola: tarima, mesa, consolas MOTOR/TANQUE/INSTRUMENTO delante, A2 al este y 2 al oeste, maquetas detrás y rótulo superior.
+- [ ] E en la consola MOTOR abre el holograma ya en la pestaña MOTOR (igual con TANQUE e INSTRUMENTO); A2 lo abre sin pieza fijada.
+- [ ] Ni las maquetas ni los rótulos tapan el holograma desde las consolas.
+- [ ] Se puede rodear la estación por los dos lados sin chocar.
+- [ ] Las maquetas muestran la pieza elegida con «MAQUETA 1:10» o «1:2» y dónde está la pieza real.
+
+### AG2. Cubierta sin interferencias
+- [ ] La cubierta del edificio de la L-4 es curva (perfil ovalado visible en los extremos) y conserva arcos, plataformas, pasarelas, grúa y luces.
+- [ ] La lanzadera más alta (bodega grande + tanque de 2 tramos) no toca la cubierta; la animación de la grúa en la consola B no atraviesa la cubierta.
+- [ ] La cámara de la consola B no se sale por la cubierta ni por las paredes.
+- [ ] La puerta de salida (este) se ve y es más ancha y alta que la lanzadera con su plataforma.
+
+### AG3. Previsualización, confirmación, cambio y cancelación
+- [ ] Previsualizar en el holograma no crea ninguna pieza en C2 ni cambia el total.
+- [ ] Encargar un motor → su pieza a escala real aparece en el soporte del MOTOR (C2) con «Transporte orbital no tripulado»; el total cambia una sola vez (lo que ya costaba).
+- [ ] E en el soporte → la grúa la lleva a la bodega del VC-1; el lote queda preparado; nada se cobra.
+- [ ] Cambiar a otro motor con la preparación abierta → la pieza anterior desaparece de la bodega, el soporte muestra la nueva y solo el lote del motor queda pendiente.
+- [ ] Volver al motor de serie → el soporte queda «sin encargo», no hay lote ni envío por ese motor.
+- [ ] Cambiar la selección mientras la grúa trabaja → aviso y la pieza no queda marcada como cargada.
+- [ ] Ningún objeto duplicado tras varios cambios (soportes, bodega, maquetas).
+
+### AG4. Destino de cada carga y límites
+- [ ] Cada contenedor y lote dice «L-4: tripulación y carga» o «Transporte orbital no tripulado» según las reglas de la lanzadera.
+- [ ] Los lotes pequeños que van en el VC-1 se entregan con el carro en la zona amarilla de C2 (se cruza el paso del fondo sin engancharse) y aparecen en el anillo del VC-1.
+- [ ] Tanque ampliado + motor de alto empuje + 10 tramos → el VC-1 dice «NO SE PUEDE DESPACHAR» con el motivo (unos 37 200 kg o más, según la carga pequeña, frente a 34 000 kg), la revisión lo marca y no se puede cerrar. Bajando tramos se resuelve.
+- [ ] El total y las tarifas son los mismos que en la versión validada con la misma selección (el VC-1 no añade cobros).
+
+### AG5. Lanzamiento no tripulado solo cuando corresponde
+- [ ] Sin componentes, sin combustible en el envío y sin carga pequeña en el envío: el VC-1 dice que no hace falta y al embarcar no aparece su secuencia.
+- [ ] Con envío: al embarcar se ven, en orden, salida de C2 con la bodega abierta, integración en el lanzador (fuera de los edificios), cuenta atrás, lanzamiento, llegada a la zona de servicio y, por cada pieza, recepción → retirada de la de serie (queda en el soporte) → colocación → comprobación; después el combustible y la carga pequeña y «EM-4X PREPARADA».
+- [ ] Las piezas recibidas e instaladas son las confirmadas (mismo tipo y tamaño que en C2).
+- [ ] No embarca ningún astronauta en el VC-1.
+
+### AG6. Tripulación, llegada y omisión
+- [ ] Después del envío (o directamente si no hay): carga de la bodega de la L-4 (si lleva), traslado, embarque, compuerta, comprobación, cuenta atrás, ascenso, llegada y atraque bajo el Mando con la L-4 confirmada.
+- [ ] En ExpedicionMVP se empieza ya a bordo, con control del personaje y sin tarjetas. F2 abre y cierra el resumen.
+- [ ] Ver todo y omitirlo (Espacio/Intro, en partes ya vistas) llegan al mismo estado: misma configuración, recursos, costes y objetivo (comparar la mesa de misión y F2 en ambos casos).
+- [ ] La instalación se ve siempre antes que la llegada de la tripulación.
+
+### AG7. Nueva expedición y ejecutable
+- [ ] Volver al hangar: soportes y VC-1 vacíos, lotes por preparar, ningún objeto de la expedición anterior; las selecciones se conservan.
+- [ ] *Juego → 6* genera el ejecutable y el recorrido completo (con y sin envío) funciona en él.
+- [ ] Acceso directo a ExpedicionMVP (sin hangar) sigue funcionando con su propia preparación y sus tarjetas.
+
+### AG8. Sustitución de modelos
+- [ ] *Arte y pruebas → 5* conecta la tabla a HangarExpedicion sin otros cambios.
+- [ ] Con una entrada «Escenario» de prueba (p. ej. `A/MesaHolograma` o `VC1/Bodega` con un cubo), el modelo sustituye al bloque, las interacciones y la grúa siguen funcionando y la consola no da avisos en ExpedicionMVP.

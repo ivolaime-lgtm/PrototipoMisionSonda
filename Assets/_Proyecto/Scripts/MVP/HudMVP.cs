@@ -278,6 +278,30 @@ namespace PrototipoMision
             GUILayout.EndArea();
         }
 
+        // ------------------------------------------------------------------ Resumen opcional de llegada (F2)
+
+        /// <summary>Consulta opcional: acompaña a lo que ya se vio en las secuencias, no las sustituye.</summary>
+        void ResumenLlegada()
+        {
+            ResumenExpedicion r = juego.Resumen;
+            if (r == null) return;
+            Rect c = new Rect(14f, 256f, 620f, 330f);
+            Fondo(c, 0.9f);
+            GUILayout.BeginArea(new Rect(c.x + 12f, c.y + 8f, c.width - 24f, c.height - 16f));
+            GUILayout.Label("RESUMEN DE LA PREPARACIÓN (F2: cerrar)", sTitulo);
+            ResumenLanzadera rl = r.lanzadera;
+            ResumenTransporte tr = r.transporte;
+            GUILayout.Label("<b>L-4 · tripulación y carga</b>: " + (rl != null ? DatosLanzadera.Resumen(rl.eleccion) : "L-4") + "\n" +
+                            (rl != null && rl.enLanzadera.Count > 0 ? "llevó: " + string.Join(", ", rl.enLanzadera) : "solo la tripulación"), sPequeno);
+            GUILayout.Label("<b>Transporte orbital no tripulado (VC-1)</b>: " +
+                            (tr != null && tr.necesario ? $"llevó {string.Join(", ", rl != null ? rl.enEnvio : r.enviado)} · {tr.masaTotalKg:0} kg" : "no hizo falta"), sPequeno);
+            GUILayout.Label($"<b>Instalado en la EM-4X</b>: {r.motor.nombre} · {r.tanque.nombre} · {r.instrumento.nombre} · {r.relevo.nombre}" +
+                            (r.sustituciones > 0 ? $" ({r.sustituciones} sustitución(es))" : " (todo de serie)"), sPequeno);
+            GUILayout.Label($"<b>A bordo</b>: combustible {r.combustibleKg / 1000f:0.0} t · {r.suministros} suministros · {r.kits} kits · " + (r.sonda ? "con sonda" : "sin sonda") +
+                            $"\n<b>Coste</b>: {r.costeTotalMUSD:0.#} de {r.presupuestoMUSD:0} M USD (ya cobrado en la preparación; nada se vuelve a cobrar)", sPequeno);
+            GUILayout.EndArea();
+        }
+
         // ------------------------------------------------------------------ Transición
 
         void Transicion()
@@ -421,6 +445,7 @@ namespace PrototipoMision
                 $"<b>PILOTAJE SIN ATENDER</b> · el vuelo sigue (motor apagado) · base a {dBase / 1000f:0.00} km, {vBase:0.0} m/s · altitud sobre Kora {s.AltitudKoraM / 1000f:0.0} km\n" +
                 juego.AyudasActivas() + (juego.Prediccion != null && juego.Prediccion.impacto ? $"  <color=#FF5040>TRAYECTORIA DE IMPACTO en {juego.Prediccion.segundosImpacto:0} s</color>" : ""), sPequeno);
 
+            if (juego.ResumenLlegadaVisible) ResumenLlegada();
             if (!juego.AyudaVisible) return;
             Rect ay = new Rect(ancho - 474f, 256f, 460f, 420f);
             Fondo(ay);

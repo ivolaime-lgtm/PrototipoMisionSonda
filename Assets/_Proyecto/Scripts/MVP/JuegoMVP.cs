@@ -200,16 +200,20 @@ namespace PrototipoMision
 
         // ------------------------------------------------------------------ Fases
 
-        /// <summary>Llegada desde el hangar: misma preparación confirmada, directamente a los mensajes de transición.</summary>
+        /// <summary>
+        /// Llegada desde el hangar: el envío, la instalación, el despegue de la L-4 y el atraque ya se han VISTO en el hangar
+        /// (o se omitieron con el mismo resultado). Aquí no se repiten tarjetas: se empieza a bordo, con el control del
+        /// personaje y la preparación CONFIRMADA. F2 abre un resumen opcional de lo que subió en cada vehículo.
+        /// </summary>
         void EntrarDesdeHangar()
         {
             PrepararFondo();
-            FaseActual = Fase.Transicion;
-            Tarjeta = 0;
-            CambiarModo(Modo.Pilotaje);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            IniciarMision();
+            Avisar("A bordo de la EM-4X, con la configuración confirmada en el hangar. F2: resumen de lo que subió en cada vehículo (opcional).", 9f);
         }
+
+        /// <summary>Resumen opcional (F2) de la preparación: qué subió en la L-4, qué en el VC-1 y qué se instaló.</summary>
+        public bool ResumenLlegadaVisible { get; private set; }
 
         void EntrarPreparacion()
         {
@@ -515,6 +519,7 @@ namespace PrototipoMision
             }
             if (ModoActual != Modo.Interior) return;
             if (k.f1Key.wasPressedThisFrame) AyudaVisible = !AyudaVisible;
+            if (k.f2Key.wasPressedThisFrame) ResumenLlegadaVisible = !ResumenLlegadaVisible;
             if (k.f5Key.wasPressedThisFrame)
             {
                 ModuloNave nc = Expedicion.Definicion.Modulo("NC");

@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace PrototipoMision
 {
-    public enum EstacionHangar { Mision, Configuracion, Manifiesto, Estanteria, Revision, Embarque, Holograma, Combustible, Carro, Integracion }
+    public enum EstacionHangar { Mision, Configuracion, Manifiesto, Estanteria, Revision, Embarque, Holograma, Combustible, Carro, Integracion, Soporte }
 
     /// <summary>Punto de interacción del hangar (por cercanía y mirando hacia él).</summary>
     public class PuntoHangar
@@ -16,6 +16,8 @@ namespace PrototipoMision
         public Vector3 posicion;
         /// <summary>El objeto en sí (para comprobar que el jugador lo mira).</summary>
         public Vector3 objetivo;
+        /// <summary>Consolas de la estación del holograma: pieza que abren directamente (−1 = ninguna).</summary>
+        public int pieza = -1;
     }
 
     /// <summary>
@@ -32,6 +34,8 @@ namespace PrototipoMision
         [SerializeField] CatalogoMision catalogoMision;
         [Tooltip("Solo para que el ejecutable incluya estos sombreadores (el hangar se construye al iniciar).")]
         [SerializeField] Material materialConLuz, materialSinLuz, materialTransparente;
+        [Tooltip("Tabla de sustitución visual (la misma de la EM-4X). Sus entradas «Escenario» sustituyen piezas del hangar, la L-4, el VC-1 y el servicio orbital. Vacía = todo provisional.")]
+        [SerializeField] RecursosVisualesEM4X recursosVisuales;
 
         public CatalogoMision Catalogo { get; private set; }
         public PreparacionExpedicion Borrador { get; private set; }
@@ -47,6 +51,8 @@ namespace PrototipoMision
         public HologramaInteractivo Holo { get; private set; }
         /// <summary>Zona B: la lanzadera L-4 en el edificio de integración (estado de vista propio, separado del holograma).</summary>
         public IntegracionLanzadera Integracion { get; private set; }
+        /// <summary>Zona C2: soportes de preparación, grúa y VC-1 (transporte orbital no tripulado).</summary>
+        public ZonaTransporteOrbital Zona { get; private set; }
         public CarroCarga Carro { get; private set; }
         public bool AlimentacionVerificada { get; private set; }
         public string Aviso { get; private set; } = "";
@@ -54,8 +60,9 @@ namespace PrototipoMision
         public readonly List<PuntoHangar> Puntos = new List<PuntoHangar>();
 
         /// <summary>Lotes que se llevan con el carro (el combustible se autoriza en su puesto).</summary>
-        public static readonly string[] LotesCarro = { "suministros", "kits", "sonda", "componentes" };
-        static readonly string[] NombresCarro = { "Suministros", "Kits de reparación", "Sonda de despliegue", "Componentes de sustitución" };
+        /// <summary>Lotes pequeños que se llevan con el carro (los componentes grandes van por sus soportes y la grúa).</summary>
+        public static readonly string[] LotesCarro = { "suministros", "kits", "sonda" };
+        static readonly string[] NombresCarro = { "Suministros", "Kits de reparación", "Sonda de despliegue" };
 
         float avisoHasta;
         Font fuente;
@@ -72,7 +79,11 @@ namespace PrototipoMision
         SecuenciaDespegue despegue;
         AudioSource audioFuente;
         AudioClip sonidoOk, sonidoError;
-        static readonly Rect ZonaEnvio = new Rect(-10f, 50f, 8f, 6f);    // planta (x, z)
+        /// <summary>Zona de entrega de los lotes pequeños que van en el VC-1 (dentro de la nave anexa C2, planta x, z).</summary>
+        static readonly Rect ZonaEnvio = new Rect(-9f, 66f, 6f, 6f);
+        readonly Dictionary<PiezaHolo, Transform> maquetas = new Dictionary<PiezaHolo, Transform>();
+        readonly Dictionary<PiezaHolo, TextMesh> rotulosMaqueta = new Dictionary<PiezaHolo, TextMesh>();
+        readonly Dictionary<PiezaHolo, Vector3> posMaqueta = new Dictionary<PiezaHolo, Vector3>();
         /// <summary>Muelle de la bodega de la lanzadera, dentro del edificio de integración (planta x, z).</summary>
         static readonly Rect ZonaMuelle = new Rect(22.5f, 29f, 6f, 6f);
         readonly Dictionary<string, Transform> huecosMuelle = new Dictionary<string, Transform>();
@@ -82,6 +93,7 @@ namespace PrototipoMision
         void Awake()
         {
             Catalogo = catalogoMision != null ? catalogoMision : ScriptableObject.CreateInstance<CatalogoMision>();
+            SustitucionEscenario.Tabla = recursosVisuales;      // null = todo provisional
             gameObject.AddComponent<HudHangarTerrestre>();
         }
 
@@ -259,7 +271,8 @@ namespace PrototipoMision
         }
 
         /// <summary>Dónde se entrega un lote: muelle de la lanzadera (zona B) o zona de envío orbital (zona C).</summary>
-        public static string Destino(LoteCarga lo) => lo.enLanzadera ? "el MUELLE DE LA LANZADERA (zona B, edificio de integración)" : "la ZONA DE ENVÍO ORBITAL (amarilla, zona C)";
+        public static string Destino(LoteCarga lo) => lo.enLanzadera ? "el MUELLE DE LA LANZADERA (zona B · L-4: tripulación y carga)"
+                                                                      : "la ENTREGA AL VC-1 (zona C2, al fondo a la izquierda · Transporte orbital no tripulado)";
 
         static string NombreLote(string id)
         {
@@ -284,6 +297,37 @@ namespace PrototipoMision
             ActualizarVisual();
             int faltan = CargaHangar.Pendientes(Lotes);
             Respuesta(true, $"{lo.nombre} entregado en {(enMuelle ? "el muelle de la lanzadera" : "la zona de envío orbital")}: LISTO." + (faltan > 0 ? $" Faltan {faltan} lote(s)." : " Carga completa."));
+        }
+
+        /// <summary>Preparación (E en el soporte) y carga con la grúa del componente encargado en el VC-1.</summary>
+        void PrepararComponente(string loteId)
+        {
+            LoteCarga lo = Lotes.Find(x => x.id == loteId);
+            TipoComponente t = TipoComponente.Motor;
+            foreach (TipoComponente c in ZonaTransporteOrbital.Tipos) if (CargaHangar.IdComponente(c) == loteId) t = c;
+            if (lo == null) { Respuesta(false, "Sin encargo para este soporte: la EM-4X usa el equipo que ya tiene instalado en órbita."); return; }
+            if (lo.preparado) { Respuesta(false, lo.nombre + " ya está cargado en el VC-1."); return; }
+            if (Resumen.transporte != null && !Resumen.transporte.Cabe) { Respuesta(false, "No se carga: " + Resumen.transporte.motivos[0]); return; }
+            if (Zona.Animando) { Respuesta(false, "La grúa está ocupada: espera a que termine."); return; }
+            string firma = lo.firma;      // si la selección cambia durante la grúa, esta carga ya no vale
+            if (Zona.Preparar(t, tipo => ComponenteCargado(tipo, firma)))
+                Respuesta(true, $"{lo.nombre}: comprobación de preparación correcta. La grúa lo lleva a la bodega del VC-1 (transporte orbital no tripulado).");
+        }
+
+        void ComponenteCargado(TipoComponente t, string firma)
+        {
+            LoteCarga lo = Lotes.Find(x => x.id == CargaHangar.IdComponente(t));
+            if (lo == null || lo.firma != firma)
+            {
+                ActualizarVisual();
+                Respuesta(false, "La selección cambió mientras la grúa trabajaba: esa pieza se retira y el soporte muestra el encargo actual.");
+                return;
+            }
+            CargaHangar.Preparar(lo);
+            Lotes = CargaHangar.Lotes(Borrador, Resumen);
+            ActualizarVisual();
+            int faltan = CargaHangar.Pendientes(Lotes);
+            Respuesta(true, $"{lo.nombre} cargado en el VC-1." + (faltan > 0 ? $" Faltan {faltan} lote(s)." : " Carga completa."));
         }
 
         public void RecuperarCarro()
@@ -318,11 +362,14 @@ namespace PrototipoMision
                 $"Presupuesto: {re.costeTotalMUSD:0.#} de {re.presupuestoMUSD:0} M USD",
                 $"Carga preparada: {Lotes.Count} lote(s)" + (re.lanzadera != null && re.lanzadera.enLanzadera.Count > 0 ? " · en la L-4: " + string.Join(", ", re.lanzadera.enLanzadera) : ""),
                 re.lanzadera != null ? $"Lanzadera L-4: {DatosLanzadera.Resumen(re.lanzadera.eleccion)} · {re.lanzadera.masaExtraKg:0} de {re.lanzadera.capacidadKg:0} kg extra" : "Lanzadera L-4",
+                re.transporte != null && re.transporte.necesario
+                    ? $"VC-1 (no tripulado) despachado antes: {re.transporte.componentes.Count} componente(s) · {re.transporte.masaTotalKg:0} kg"
+                    : "Sin envío orbital: no despega ningún transporte no tripulado",
                 $"EM-4X (en órbita): {re.motor.nombre} · {re.tanque.nombre}",
                 $"{re.instrumento.nombre} · combustible {re.combustibleKg / 1000f:0.0} t · Δv ≈ {re.deltaVMS:0} m/s",
                 "Tripulación a bordo de la lanzadera L-4 · compuerta cerrada"
             };
-            despegue.Iniciar(Personaje.Ojos, comprobacion, ExpedicionActual.Preparacion.lanzadera, MaterialCache, AbrirExpedicion);
+            despegue.Iniciar(Personaje.Ojos, comprobacion, re, ExpedicionActual.Preparacion, Catalogo, MaterialCache, AbrirExpedicion);
         }
 
         void AbrirExpedicion()
@@ -376,7 +423,7 @@ namespace PrototipoMision
         {
             Abierta = p;
             BloquearCursor(false);       // cursor libre y personaje quieto mientras se usa la terminal
-            if (p.tipo == EstacionHangar.Holograma) Holo.Entrar(Personaje.Camara);
+            if (p.tipo == EstacionHangar.Holograma) { Holo.Entrar(Personaje.Camara); if (p.pieza >= 0) Holo.Elegir((PiezaHolo)p.pieza); }
             if (p.tipo == EstacionHangar.Integracion) Integracion.Entrar(Personaje.Camara);
         }
 
@@ -439,6 +486,9 @@ namespace PrototipoMision
                     Carro.Empujar(Personaje.transform);
                     Personaje.FactorVelocidad = 0.7f;
                     Avisar("Empujando el carro. Acércalo a una estantería y pulsa E para cargar su contenedor; E en otro sitio lo suelta.", 6f);
+                    break;
+                case EstacionHangar.Soporte:
+                    PrepararComponente(PuntoCercano.lote);
                     break;
                 case EstacionHangar.Estanteria:
                 {
@@ -521,7 +571,6 @@ namespace PrototipoMision
             mLote["suministros"] = Mat(new Color(0.25f, 0.5f, 0.85f), false);
             mLote["kits"] = Mat(new Color(1f, 0.6f, 0.1f), false);
             mLote["sonda"] = Mat(new Color(0.92f, 0.92f, 0.95f), false);
-            mLote["componentes"] = Mat(new Color(0.55f, 0.6f, 0.65f), false);
         }
 
         Transform Cubo(string nombre, Transform padre, Vector3 pos, Vector3 escala, Material m, bool colision)
@@ -587,7 +636,10 @@ namespace PrototipoMision
             Cubo("Pared este (norte)", raiz, new Vector3(ancho / 2f + 0.25f, alto / 2f, 44f), new Vector3(0.5f, alto, 40f), mPared, true);
             Cubo("Pared este (dintel del paso)", raiz, new Vector3(ancho / 2f + 0.25f, 10.5f, 19f), new Vector3(0.5f, 3f, 10f), mPared, true);
             Cubo("Pared de entrada", raiz, new Vector3(0f, alto / 2f, -0.25f), new Vector3(ancho, alto, 0.5f), mPared, true);
-            Cubo("Pared del fondo (oeste)", raiz, new Vector3(-11f, alto / 2f, fondo + 0.25f), new Vector3(18f, alto, 0.5f), mPared, true);
+            // Pared del fondo (oeste) con el paso a la zona C2 (x −9 a −3, 6 m de alto)
+            Cubo("Pared del fondo (oeste)", raiz, new Vector3(-14.5f, alto / 2f, fondo + 0.25f), new Vector3(11f, alto, 0.5f), mPared, true);
+            Cubo("Pared del fondo (junto al paso a C2)", raiz, new Vector3(-2.5f, alto / 2f, fondo + 0.25f), new Vector3(1f, alto, 0.5f), mPared, true);
+            Cubo("Pared del fondo (dintel del paso a C2)", raiz, new Vector3(-6f, 9f, fondo + 0.25f), new Vector3(6f, 6f, 0.5f), mPared, true);
             Cubo("Pared del fondo (este)", raiz, new Vector3(11f, alto / 2f, fondo + 0.25f), new Vector3(18f, alto, 0.5f), mPared, true);
             Cubo("Pared del fondo (dintel)", raiz, new Vector3(0f, (alto + 4f) / 2f, fondo + 0.25f), new Vector3(4f, alto - 4f, 0.5f), mPared, true);
             Cubo("Pasarela (suelo)", raiz, new Vector3(0f, -0.25f, fondo + 3f), new Vector3(4f, 0.5f, 6f), mSuelo, true);
@@ -609,38 +661,73 @@ namespace PrototipoMision
 
             // Señales de orientación
             Cubo("Directorio (cartel)", raiz, new Vector3(0f, 4.2f, 6f), new Vector3(8f, 2.4f, 0.1f), mSenal, false);
-            Rotulo("HANGAR TERRESTRE · PREPARACIÓN DE LA EXPEDICIÓN\nA · NAVE ORBITAL EM-4X: 1 Misión (←) · 2 Configuración y holograma (centro)\nB · LANZADERA L-4: edificio de integración (→, paso en la pared derecha)\nC · CARGA: carro y estanterías (←) · combustible y 4 Revisión (→)\nD · EMBARQUE: 5, al fondo ↑",
+            Rotulo("HANGAR TERRESTRE · PREPARACIÓN DE LA EXPEDICIÓN\nA · NAVE ORBITAL EM-4X: 1 Misión (←) · 2 Configuración y holograma (centro)\nB · LANZADERA L-4: edificio de integración (→, paso en la pared derecha)\nC · CARGA: carro y estanterías (←) · combustible y 4 Revisión (→)\nC2 · TRANSPORTE ORBITAL NO TRIPULADO (al fondo, izquierda) · D · EMBARQUE: 5, al fondo ↑",
                    raiz, new Vector3(0f, 4.2f, 5.9f), 0.06f, new Color(1f, 0.9f, 0.5f), false);   // se lee desde la entrada
 
             // A · Misión
             Terminal(raiz, "Misión", "1", new Vector3(-7f, 0f, 11f), new Vector3(1f, 0f, -0.4f), EstacionHangar.Mision, new Color(0.5f, 0.8f, 1f));
 
-            // B · Configuración orbital + holograma interactivo (centro visual)
-            Terminal(raiz, "Configuración orbital", "2", new Vector3(6f, 0f, 16f), new Vector3(-1f, 0f, -0.3f), EstacionHangar.Configuracion, new Color(0.45f, 0.9f, 1f));
-            Cubo("Mesa del holograma", raiz, new Vector3(0f, 0.45f, 22f), new Vector3(5f, 0.9f, 5f), mTerminal, true);
+            // A · ESTACIÓN DE CONFIGURACIÓN DE LA EM-4X: todo lo que usa el holograma, agrupado alrededor de la mesa.
+            //   Delante (sur): consolas MOTOR · TANQUE · INSTRUMENTO (abren el holograma con esa pieza elegida).
+            //   Este: A2 Comparar y encargar · Oeste: 2 Configuración orbital (combustible, relevo y resto).
+            //   Detrás (norte, bajas para no tapar el holograma): maquetas identificadas de la pieza elegida.
+            //   La estación ocupa x −6…6, z 16,5…27,5; el paso queda libre a ambos lados.
+            Cubo("Estación A · tarima", raiz, new Vector3(0f, 0.02f, 22f), new Vector3(12f, 0.04f, 11f), Mat(new Color(0.24f, 0.3f, 0.36f), false), false);
+            foreach (float bx in new[] { -6f, 6f })
+                Cubo("Estación A · borde", raiz, new Vector3(bx, 0.05f, 22f), new Vector3(0.12f, 0.1f, 11f), Mat(new Color(0.3f, 0.85f, 1f), true), false);
+            Transform mesa = Cubo("Mesa del holograma", raiz, new Vector3(0f, 0.45f, 22f), new Vector3(5f, 0.9f, 5f), mTerminal, true);
+            SustitucionEscenario.Punto(mesa, "A/MesaHolograma");
             Holo = gameObject.AddComponent<HologramaInteractivo>();
             Holo.Construir(this, raiz, new Vector3(0f, 2.9f, 22f), MatTransparente(new Color(0.3f, 0.85f, 1f, 0.35f)),
                            MatTransparente(new Color(1f, 0.8f, 0.2f, 0.55f)), MatTransparente(new Color(0.6f, 1f, 1f, 0.8f)),
                            MatTransparente(new Color(1f, 0.95f, 0.4f, 0.9f)));
-            Rotulo("A · NAVE ORBITAL EM-4X (en órbita)\n2 · HOLOGRAMA · E: consultar y comparar piezas", raiz, new Vector3(0f, 1.6f, 19.2f), 0.045f, new Color(0.6f, 0.95f, 1f));
-            Punto(EstacionHangar.Holograma, "Holograma de la EM-4X (comparar y encargar piezas)", new Vector3(0f, 0f, 18.7f), new Vector3(0f, 0f, 22f));
+            Rotulo("A · ESTACIÓN DE CONFIGURACIÓN DE LA EM-4X (la nave está en órbita)", raiz, new Vector3(0f, 5.6f, 22f), 0.07f, new Color(0.6f, 0.95f, 1f));
+            Vector3 centroMesa = new Vector3(0f, 0f, 22f);
+            void ConsolaPieza(string titulo, PiezaHolo pieza, Vector3 pos)
+            {
+                Vector3 frente = pos - centroMesa; frente.y = 0f;
+                Transform t = Terminal(raiz, titulo, "A", pos, frente.normalized, EstacionHangar.Holograma, new Color(0.55f, 0.95f, 1f));
+                SustitucionEscenario.Punto(t.Find("Pedestal"), "A/Consola");
+                Puntos[Puntos.Count - 1].pieza = (int)pieza;
+                Transform rt = t.Find("Rótulo");      // rótulo bajo, para no tapar el holograma
+                if (rt != null) { rt.localPosition = new Vector3(0f, 1.95f, 0f); rt.GetComponent<TextMesh>().characterSize = 0.04f; }
+                Puntos[Puntos.Count - 1].nombre = "Holograma · elegir " + titulo.ToLower();
+            }
+            ConsolaPieza("Motor", PiezaHolo.Motor, new Vector3(-2.8f, 0f, 18.2f));
+            ConsolaPieza("Tanque", PiezaHolo.Tanque, new Vector3(0f, 0f, 17.6f));
+            ConsolaPieza("Instrumento", PiezaHolo.Instrumento, new Vector3(2.8f, 0f, 18.2f));
+            Transform comparar = Terminal(raiz, "Comparar y encargar", "A2", new Vector3(4.6f, 0f, 22f), new Vector3(1f, 0f, 0f), EstacionHangar.Holograma, new Color(0.45f, 0.9f, 1f));
+            SustitucionEscenario.Punto(comparar.Find("Pedestal"), "A/Consola");
+            Puntos[Puntos.Count - 1].nombre = "Holograma · comparar y encargar";
+            Terminal(raiz, "Configuración orbital", "2", new Vector3(-4.6f, 0f, 22f), new Vector3(-1f, 0f, 0f), EstacionHangar.Configuracion, new Color(0.45f, 0.9f, 1f));
+            // Maquetas identificadas (la pieza real, a escala 1:1, está en su soporte de la zona C2)
+            posMaqueta[PiezaHolo.Motor] = new Vector3(-3.4f, 0.9f, 26.4f);
+            posMaqueta[PiezaHolo.Tanque] = new Vector3(0f, 0.9f, 26.7f);
+            posMaqueta[PiezaHolo.Instrumento] = new Vector3(3.4f, 0.9f, 26.4f);
+            foreach (var kv in posMaqueta)
+            {
+                Transform ped = Cubo("Pedestal de maqueta", raiz, new Vector3(kv.Value.x, 0.45f, kv.Value.z), new Vector3(1.6f, 0.9f, 1.6f), mTerminal, true);
+                SustitucionEscenario.Punto(ped, "A/PedestalMaqueta");
+                rotulosMaqueta[kv.Key] = Rotulo("", raiz, new Vector3(kv.Value.x, 2.15f, kv.Value.z), 0.032f, new Color(0.8f, 0.95f, 1f));
+            }
 
             // C · Carga: manifiesto, carro, estanterías y zona de envío
             Terminal(raiz, "Carga (manifiesto)", "3", new Vector3(-8f, 0f, 29f), new Vector3(1f, 0f, 0f), EstacionHangar.Manifiesto, new Color(1f, 0.7f, 0.3f));
             for (int i = 0; i < LotesCarro.Length; i++) Estanteria(raiz, LotesCarro[i], NombresCarro[i], 28f + i * 5.5f);
+            Rotulo("C · PREPARACIÓN DE CARGA\ncarro · estanterías · combustible (→)", raiz, new Vector3(-14f, 6f, 36f), 0.07f, new Color(1f, 0.8f, 0.4f));
+
+            // C2 · Nave anexa del transporte orbital no tripulado (paso en la pared del fondo, a la izquierda del embarque)
+            Zona = gameObject.AddComponent<ZonaTransporteOrbital>();
+            Zona.Construir(this, raiz, MaterialCache, mSuelo, mTecho, (t, pa, po, ta, co) => Rotulo(t, pa, po, ta, co));
+            Rotulo("C2 · TRANSPORTE ORBITAL NO TRIPULADO ↑\ncomponentes de la EM-4X y carga que no va en la L-4", raiz, new Vector3(-6f, 7.2f, fondo - 0.35f), 0.06f,
+                   new Color(1f, 0.85f, 0.45f), false);
             Cubo("Zona de envío", raiz, new Vector3(ZonaEnvio.center.x, 0.03f, ZonaEnvio.center.y), new Vector3(ZonaEnvio.width, 0.06f, ZonaEnvio.height), mEnvio, false);
-            Rotulo("C · ZONA DE ENVÍO ORBITAL (sin tripulación)\ntrae aquí el carro con los lotes que no viajan en la lanzadera", raiz, new Vector3(ZonaEnvio.center.x, 3f, ZonaEnvio.center.y), 0.06f, new Color(1f, 0.9f, 0.3f));
-            for (int i = 0; i < LotesCarro.Length; i++)
-            {
-                Transform h = new GameObject("Hueco de envío · " + LotesCarro[i]).transform;
-                h.SetParent(raiz, false);
-                h.localPosition = new Vector3(-8.5f + (i % 2) * 5f, 0.06f, 51.5f + (i / 2) * 3f);
-                huecosEnvio[LotesCarro[i]] = h;
-            }
+            Rotulo("C2 · ENTREGA DE CARGA PEQUEÑA AL VC-1\ntrae aquí los lotes que van en el transporte orbital no tripulado", raiz, new Vector3(ZonaEnvio.center.x, 3f, ZonaEnvio.center.y), 0.06f, new Color(1f, 0.9f, 0.3f));
+            for (int i = 0; i < LotesCarro.Length; i++) huecosEnvio[LotesCarro[i]] = Zona.HuecoContenedor(LotesCarro[i]);
             Carro = new GameObject().AddComponent<CarroCarga>();
             Carro.Construir(new Vector3(-12f, 0f, 24f), mEstanteria, mTerminal);
-            Carro.LimiteMin = new Vector2(-19.2f, 1f);
-            Carro.LimiteMax = new Vector2(52f, fondo - 2f);     // incluye el edificio de integración (las paredes limitan el resto)
+            Carro.LimiteMin = new Vector2(-31.5f, 1f);
+            Carro.LimiteMax = new Vector2(52f, 103.5f);     // incluye el edificio de la L-4 y la nave C2 (las paredes limitan el resto)
 
             // B · Edificio de integración de la lanzadera L-4
             ConstruirIntegracion(raiz);
@@ -661,19 +748,20 @@ namespace PrototipoMision
             Rotulo("D · EMBARQUE · 5 · LANZADERA L-4\nE: confirmar la salida", raiz, new Vector3(0f, 5f, fondo - 0.5f), 0.08f, new Color(0.5f, 1f, 0.6f));
             rotuloEmbarque = Rotulo("", raiz, new Vector3(0f, 3.4f, fondo - 1f), 0.05f, Color.white);
             Punto(EstacionHangar.Embarque, "Embarque · Lanzadera L-4", new Vector3(0f, 0f, fondo - 1.8f), new Vector3(0f, 0f, fondo - 1.2f));
+            SustitucionEscenario.Aplicar(raiz);
         }
 
         /// <summary>
         /// ZONA B · Edificio de integración (bloques provisionales): nave alta junto a la pared este del hangar, con la
         /// lanzadera L-4 en vertical sobre su plataforma, dos torres de servicio, plataformas de trabajo, pasarelas, puente
         /// grúa, focos de trabajo y el muelle de la bodega. Referencia de AMBIENTE (no copia ningún vehículo ni edificio real).
-        /// Medidas: interior x 20,5–52,5 · z 2–38 · 46 m de alto. Lanzadera en (36,5; 20), base sobre la plataforma (2 m).
+        /// Medidas: interior x 20,5–52,5 · z 2–38; paredes hasta 36 m y cubierta abovedada hasta 52 m. Lanzadera en (36,5; 20), base sobre la plataforma (2 m).
         /// </summary>
         void ConstruirIntegracion(Transform raizHangar)
         {
             Transform raiz = new GameObject("Edificio de integración de la lanzadera (zona B, provisional)").transform;
             raiz.SetParent(raizHangar, false);
-            const float x0 = 20.5f, x1 = 52.5f, z0 = 2f, z1 = 38f, alto = 46f;
+            const float x0 = 20.5f, x1 = 52.5f, z0 = 2f, z1 = 38f;
             float cx = (x0 + x1) / 2f, cz = (z0 + z1) / 2f;
             Vector3 vehiculo = new Vector3(36.5f, 2f, 20f);
             Material pared = Mat(new Color(0.42f, 0.44f, 0.47f), false), viga = Mat(new Color(0.3f, 0.32f, 0.35f), false),
@@ -683,25 +771,45 @@ namespace PrototipoMision
             // Envolvente (los nombres «Edificio…» los usa la cámara de la integración para no atravesar paredes)
             Cubo("Edificio · suelo", raiz, new Vector3(cx, -0.25f, cz), new Vector3(x1 - x0, 0.5f, z1 - z0), mSuelo, true);
             Cubo("Umbral del paso", raiz, new Vector3(20.25f, -0.25f, 19f), new Vector3(0.7f, 0.5f, 10f), mSuelo, true);
-            Cubo("Edificio · pared oeste (sobre el hangar)", raiz, new Vector3(20.25f, 12f + (alto - 12f) / 2f, cz), new Vector3(0.5f, alto - 12f, z1 - z0), pared, true);
-            Cubo("Edificio · pared sur", raiz, new Vector3(cx, alto / 2f, z0 - 0.25f), new Vector3(x1 - x0 + 1f, alto, 0.5f), pared, true);
-            Cubo("Edificio · pared norte", raiz, new Vector3(cx, alto / 2f, z1 + 0.25f), new Vector3(x1 - x0 + 1f, alto, 0.5f), pared, true);
-            Cubo("Edificio · pared este", raiz, new Vector3(x1 + 0.25f, alto / 2f, cz), new Vector3(0.5f, alto, z1 - z0), pared, true);
-            Cubo("Edificio · techo", raiz, new Vector3(cx, alto + 0.25f, cz), new Vector3(x1 - x0 + 1f, 0.5f, z1 - z0 + 1f), mTecho, true);
+            // Cubierta ABOVEDADA de perfil ovalado (semielipse en Z, corre a lo largo de X): alero a 36 m, clave a 52 m.
+            // Gálibo comprobado: lanzadera hasta 37,5 m en z = 20 (bóveda 52 m); puente grúa a 42 m entre z 5 y 35 (bóveda ≥ 44,8 m);
+            // torres hasta 40 m en z 11,5 y 28,5 (bóveda ≥ 49 m). Puerta de salida al este: 16 × 42 m (lanzadera y plataforma caben).
+            const float alero = 36f, flecha = 16f, puertaZ0 = 12f, puertaZ1 = 28f, puertaAlto = 42f;
+            Cubo("Edificio · pared oeste (sobre el hangar)", raiz, new Vector3(20.25f, 12f + (alero - 12f) / 2f, cz), new Vector3(0.5f, alero - 12f, z1 - z0), pared, true);
+            GeometriaProvisional.Hastial("Edificio · hastial oeste", raiz, true, 20.25f, z0, z1, alero, flecha, b => alero, pared, true);
+            Cubo("Edificio · pared sur", raiz, new Vector3(cx, alero / 2f, z0 - 0.25f), new Vector3(x1 - x0 + 1f, alero, 0.5f), pared, true);
+            Cubo("Edificio · pared norte", raiz, new Vector3(cx, alero / 2f, z1 + 0.25f), new Vector3(x1 - x0 + 1f, alero, 0.5f), pared, true);
+            Cubo("Edificio · pared este (sur de la puerta)", raiz, new Vector3(x1 + 0.25f, alero / 2f, (z0 + puertaZ0) / 2f), new Vector3(0.5f, alero, puertaZ0 - z0), pared, true);
+            Cubo("Edificio · pared este (norte de la puerta)", raiz, new Vector3(x1 + 0.25f, alero / 2f, (puertaZ1 + z1) / 2f), new Vector3(0.5f, alero, z1 - puertaZ1), pared, true);
+            GeometriaProvisional.Hastial("Edificio · hastial este", raiz, true, x1 + 0.25f, z0, z1, alero, flecha,
+                                         b => b > puertaZ0 && b < puertaZ1 ? puertaAlto : alero, pared, true);
+            Transform puerta = new GameObject("Puerta de salida de la lanzadera (cerrada)").transform;
+            puerta.SetParent(raiz, false);
+            SustitucionEscenario.Punto(puerta, "B/PuertaSalida");
+            Cubo("Edificio · hoja de la puerta (sur)", puerta, new Vector3(x1 + 0.1f, puertaAlto / 2f, (puertaZ0 + 20f) / 2f), new Vector3(0.3f, puertaAlto, 7.95f), viga, true);
+            Cubo("Edificio · hoja de la puerta (norte)", puerta, new Vector3(x1 + 0.1f, puertaAlto / 2f, (20f + puertaZ1) / 2f), new Vector3(0.3f, puertaAlto, 7.95f), viga, true);
+            Cubo("Marco de la puerta", puerta, new Vector3(x1 - 0.2f, puertaAlto + 0.3f, 20f), new Vector3(0.4f, 0.6f, puertaZ1 - puertaZ0), amarillo, false);
+            Rotulo("SALIDA DE LA LANZADERA HACIA LA PLATAFORMA (puerta 16 × 42 m)", raiz, new Vector3(x1 - 0.6f, 6f, 20f), 0.07f, new Color(1f, 0.85f, 0.4f));
+            Transform cubierta = GeometriaProvisional.Boveda("Edificio · cubierta abovedada", raiz, true, x0 - 0.5f, x1 + 0.5f, z0 - 0.5f, z1 + 0.5f,
+                                                             alero, flecha, 0.4f, mTecho, true);
+            SustitucionEscenario.Punto(cubierta, "B/Cubierta");
+            // Arcos de la estructura metálica, un poco por debajo de la cubierta
+            for (float x = x0 + 2f; x < x1; x += 6f)
+                GeometriaProvisional.Boveda("Arco de la cubierta", raiz, true, x - 0.3f, x + 0.3f, z0 + 0.3f, z1 - 0.3f, alero - 0.7f, flecha - 0.4f, 0.7f, viga, false, 16);
             // Costillas y vigas de las paredes (sensación industrial y de escala)
             for (float x = x0 + 2f; x < x1; x += 6f)
             {
-                Cubo("Pilar", raiz, new Vector3(x, alto / 2f, z0 + 0.4f), new Vector3(0.6f, alto, 0.6f), viga, false);
-                Cubo("Pilar", raiz, new Vector3(x, alto / 2f, z1 - 0.4f), new Vector3(0.6f, alto, 0.6f), viga, false);
+                Cubo("Pilar", raiz, new Vector3(x, alero / 2f, z0 + 0.4f), new Vector3(0.6f, alero, 0.6f), viga, false);
+                Cubo("Pilar", raiz, new Vector3(x, alero / 2f, z1 - 0.4f), new Vector3(0.6f, alero, 0.6f), viga, false);
             }
-            for (float y = 12f; y < alto; y += 12f)
+            for (float y = 12f; y < alero; y += 12f)
             {
                 Cubo("Viga", raiz, new Vector3(cx, y, z0 + 0.5f), new Vector3(x1 - x0, 0.8f, 0.5f), viga, false);
                 Cubo("Viga", raiz, new Vector3(cx, y, z1 - 0.5f), new Vector3(x1 - x0, 0.8f, 0.5f), viga, false);
-                Cubo("Viga", raiz, new Vector3(x1 - 0.5f, y, cz), new Vector3(0.5f, 0.8f, z1 - z0), viga, false);
             }
-            Cubo("Riel de la grúa (sur)", raiz, new Vector3(cx, 42.6f, 3.2f), new Vector3(x1 - x0, 0.6f, 0.6f), amarillo, false);
-            Cubo("Riel de la grúa (norte)", raiz, new Vector3(cx, 42.6f, 36.8f), new Vector3(x1 - x0, 0.6f, 0.6f), amarillo, false);
+            // Rieles del puente grúa colgados de los arcos (z 5 y 35, donde la bóveda pasa de 44,8 m)
+            Cubo("Riel de la grúa (sur)", raiz, new Vector3(cx, 42.6f, 5f), new Vector3(x1 - x0, 0.6f, 0.6f), amarillo, false);
+            Cubo("Riel de la grúa (norte)", raiz, new Vector3(cx, 42.6f, 35f), new Vector3(x1 - x0, 0.6f, 0.6f), amarillo, false);
 
             // Plataforma móvil (se ve la base; no se puede subir) y franjas de seguridad
             Cubo("Plataforma de la lanzadera", raiz, new Vector3(vehiculo.x, 1f, vehiculo.z), new Vector3(12f, 2f, 12f), viga, true);
@@ -745,7 +853,7 @@ namespace PrototipoMision
             }
 
             // Iluminación de trabajo (cálida, sin sombras)
-            foreach (Vector3 lp in new[] { new Vector3(28f, 10f, 20f), new Vector3(45f, 10f, 20f), new Vector3(36.5f, 28f, 10f), new Vector3(36.5f, 28f, 30f), new Vector3(30f, 40f, 20f) })
+            foreach (Vector3 lp in new[] { new Vector3(28f, 10f, 20f), new Vector3(45f, 10f, 20f), new Vector3(36.5f, 28f, 10f), new Vector3(36.5f, 28f, 30f), new Vector3(30f, 40f, 20f), new Vector3(44f, 44f, 20f) })
             {
                 Light l = new GameObject("Foco de trabajo (luz)").AddComponent<Light>();
                 l.transform.SetParent(raiz, false);
@@ -783,7 +891,6 @@ namespace PrototipoMision
                 hm.localPosition = new Vector3(ZonaMuelle.x + 1.2f + i * 1.8f, 0.06f, ZonaMuelle.yMax - 1f);
                 huecosMuelle[LotesCarro[i]] = hm;
             }
-            huecosMuelle["componentes"] = huecosEnvio["componentes"];     // los componentes nunca viajan en la lanzadera
         }
 
         void Estanteria(Transform raiz, string id, string nombre, float z)
@@ -812,12 +919,35 @@ namespace PrototipoMision
 
         // ------------------------------------------------------------------ Representación de la selección
 
+        /// <summary>Maquetas de la estación A: la pieza elegida (instalada o encargada), reducida y rotulada como maqueta.</summary>
+        void ActualizarMaquetas()
+        {
+            foreach (var kv in posMaqueta)
+            {
+                Transform vieja;
+                if (maquetas.TryGetValue(kv.Key, out vieja) && vieja != null) Destroy(vieja.gameObject);
+                TipoComponente t = kv.Key == PiezaHolo.Motor ? TipoComponente.Motor : kv.Key == PiezaHolo.Tanque ? TipoComponente.Tanque : TipoComponente.Instrumento;
+                int i = kv.Key == PiezaHolo.Motor ? Borrador.motor : kv.Key == PiezaHolo.Tanque ? Borrador.tanque : Borrador.instrumento;
+                float escala = t == TipoComponente.Instrumento ? 0.5f : 0.1f;      // el instrumento es pequeño: 1:2
+                Transform m = ModeloComponentes.Componente(t, i, Resumen, Catalogo, transform, MaterialCache, escala);
+                if (m == null) continue;
+                MedidasTransporte md = ModeloComponentes.Medidas(t, i, Catalogo);
+                m.position = kv.Value + new Vector3(0f, md.diametro * escala / 2f + 0.02f, -md.largo * escala / 2f);
+                maquetas[kv.Key] = m;
+                string nombre = t == TipoComponente.Motor ? Resumen.motor.nombre : t == TipoComponente.Tanque ? Resumen.tanque.nombre : Resumen.instrumento.nombre;
+                rotulosMaqueta[kv.Key].text = $"MAQUETA {(escala < 0.2f ? "1:10" : "1:2")} · {ModeloComponentes.NombreTipo(t)}\n{nombre}\n" +
+                    (i == 0 ? "instalado de serie en la EM-4X (no se envía)" : $"ENCARGADO · pieza real {md.diametro:0.0} × {md.largo:0.0} m en su soporte (C2)");
+            }
+        }
+
         void ActualizarVisual()
         {
             if (Resumen == null || rotuloRevision == null) return;
             bool cerrada = ExpedicionActual.Confirmada;
             if (Holo != null && !Holo.Animando) Holo.Actualizar();
             if (Integracion != null && !Integracion.Animando) Integracion.Actualizar();
+            if (Zona != null && !Zona.Animando) Zona.Actualizar();
+            ActualizarMaquetas();
 
             // Si el carro lleva un contenedor que ya no corresponde a la selección, se descarga (vuelve a su estantería).
             if (Carro.Lote != null)
@@ -847,7 +977,7 @@ namespace PrototipoMision
                     c.localPosition = destino == estanterias[id] ? new Vector3(0f, 0.02f, 0f) : Vector3.zero;
                     c.localRotation = Quaternion.identity;
                 }
-                string donde = lo.enLanzadera ? "muelle de la lanzadera (B)" : "zona de envío (C)";
+                string donde = lo.enLanzadera ? "muelle de la L-4 (B) · L-4: tripulación y carga" : "VC-1 (C2) · Transporte orbital no tripulado";
                 string estado = lo.preparado ? "LISTO · en el " + donde : Carro.Lote == id ? "EN EL CARRO · llévalo al " + donde : "POR PREPARAR · carro → " + donde;
                 rotulosLote[id].text = NombresCarro[i].ToUpper() + "\n" + lo.detalle.Replace("\n", ", ") + "\n" + estado;
                 rotulosLote[id].color = lo.preparado ? new Color(0.5f, 1f, 0.55f) : new Color(1f, 0.8f, 0.4f);

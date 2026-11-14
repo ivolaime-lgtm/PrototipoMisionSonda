@@ -49,8 +49,9 @@ namespace PrototipoMision
 
             // Puente grúa (rieles fijos en el edificio; el puente y el gancho se mueven en la animación)
             Material acero = fabrica(new Color(0.95f, 0.75f, 0.15f), false), oscuro = fabrica(new Color(0.15f, 0.16f, 0.18f), false);
-            puente = Bloque("Puente grúa", raiz, new Vector3(basePos.x, AlturaPuente, basePos.z), new Vector3(1.2f, 1.4f, 34f), acero);
-            gancho = Bloque("Carro y gancho", puente, new Vector3(0f, -1.2f, 0f), new Vector3(1.6f / 1.2f, 0.8f / 1.4f, 1.6f / 34f), oscuro);
+            puente = Bloque("Puente grúa", raiz, new Vector3(basePos.x, AlturaPuente, basePos.z), new Vector3(1.2f, 1.4f, 30f), acero);     // entre los rieles de z 5 y 35 (bajo la cubierta abovedada)
+            SustitucionEscenario.Punto(puente, "B/PuenteGrua");
+            gancho = Bloque("Carro y gancho", puente, new Vector3(0f, -1.2f, 0f), new Vector3(1.6f / 1.2f, 0.8f / 1.4f, 1.6f / 30f), oscuro);
             cable = Bloque("Cable", raiz, Vector3.zero, new Vector3(0.12f, 1f, 0.12f), oscuro);
             cable.gameObject.SetActive(false);
 

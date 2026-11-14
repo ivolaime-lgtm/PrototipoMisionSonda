@@ -65,6 +65,9 @@ namespace PrototipoMision
                     case TipoSustitucion.Equipo: Equipo(nave, d, e, l); break;
                     case TipoSustitucion.HojaPuerta: Hojas(d, uniones, e, l); break;
                     case TipoSustitucion.PanelPuerta: Paneles(uniones, e, l); break;
+                    case TipoSustitucion.Escenario:
+                        // Se aplica fuera de la EM-4X (SustitucionEscenario, en el hangar y en las secuencias).
+                        l.estado = "pieza de escenario: se aplica en el hangar y en las secuencias"; l.correcto = true; continue;
                     default: Utileria(detalle, e, l); break;
                 }
                 int puestas = instancias.Count - antes;

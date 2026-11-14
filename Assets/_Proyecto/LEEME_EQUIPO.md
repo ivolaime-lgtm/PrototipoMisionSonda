@@ -5,7 +5,7 @@
 > - **MVP sin hangar (pruebas):** *Prototipo → Juego → 4. Abrir ExpedicionMVP*.
 > - **Para importar modelos:** *Prototipo → Arte y pruebas → 4. Abrir ModeloPrueba (IMPORTAR MODELOS)* (si aún no existe: *Arte y pruebas → 2. Crear escena ModeloPrueba*).
 > - **Ejecutable:** *Prototipo → Juego → 6. Generar el ejecutable completo (Windows)*.
-> - **Zonas del hangar:** A · nave orbital EM-4X (holograma, terminales 1–2) · B · integración de la lanzadera L-4 (edificio a la derecha, consola B) · C · carga (carro, estanterías, combustible) · D · embarque (al fondo).
+> - **Zonas del hangar:** A · estación de configuración de la EM-4X (holograma con sus consolas alrededor) · B · integración de la lanzadera L-4 (edificio a la derecha, consola B) · C · carga (carro, estanterías, combustible) · C2 · transporte orbital no tripulado VC-1 (nave anexa, al fondo a la izquierda) · D · embarque (al fondo).
 > - Los menús se reorganizaron: la tabla de equivalencias (números antiguos → nuevos) está en «Escenas del proyecto y menú Prototipo», al final.
 
 Nombre del proyecto provisional: `PrototipoMisionSonda`.
@@ -1025,4 +1025,74 @@ Reglas de dinero: el envío orbital (10 M) solo se cobra si queda algo que no vi
 - Guía de modelado: apartado 12 (lanzadera y edificio). El encargo de Ciencia no cambia.
 
 No hace falta escena nueva: el edificio está en HangarExpedicion, así que el recorrido y el ejecutable no cambian.
+
+## Recorrido visual: estación A compacta, cubierta abovedada, transporte no tripulado VC-1 y llegada sin tarjetas (13-11-2026)
+
+Sobre la versión validada (AE1–AE9 y AF1–AF4; copia: `CopiasSeguridad/Copia_validada_AE_AF_2026-11-13.zip`). Estado: **escrito y revisado por lectura; sin compilar ni ejecutar.** Pruebas: sección AG de `PRUEBAS_ACEPTACION.md`. Sigue habiendo tres vehículos distintos: **EM-4X** (en órbita, la configura el holograma), **L-4** (tripulación y carga asignada) y **VC-1** (nuevo, transporte orbital sin tripulación). No hay escenas nuevas: todo está en HangarExpedicion, así que el ejecutable no cambia.
+
+**Estación A:**
+- Alrededor de la mesa del holograma están las consolas MOTOR, TANQUE e INSTRUMENTO (abren el holograma con esa pieza elegida), la consola A2 «Comparar y encargar» (este) y la terminal 2 (oeste).
+- Detrás, bajas, hay maquetas identificadas de la pieza elegida: motor y tanque a 1:10, instrumento a 1:2. La pieza real, a escala 1:1, aparece en su soporte de la zona C2.
+- El paso queda libre a ambos lados.
+
+**Cubierta de la L-4:**
+- Bóveda de perfil ovalado: paredes hasta 36 m y clave a 52 m.
+- Se conservan los arcos de estructura, las plataformas, las pasarelas, la grúa (ahora de 30 m, entre rieles a z 5 y 35) y la luz de trabajo.
+- Hay una puerta de salida de 16 × 42 m al este.
+- Gálibo comprobado por cálculo (no en Unity): sección 13 B de la guía.
+
+**Estados de un componente encargado:**
+- **Previsualización:** solo en el holograma. No genera carga ni compras.
+- **Encargo confirmado:** la pieza aparece a escala real en su soporte de C2, con el destino «Transporte orbital no tripulado».
+- **Preparación:** E en el soporte.
+- **Carga:** el puente grúa la lleva a su hueco de la bodega del VC-1.
+- **Despacho:** solo al embarcar, con la preparación cerrada y validada.
+- Cambiar o cancelar un componente con la preparación abierta retira su representación e invalida solo su lote.
+- El equipo de serie (opción 0) no aparece como compra ni envío.
+
+**Carga:**
+- Cada componente de la EM-4X es su propio lote y va siempre en el VC-1.
+- Los lotes pequeños siguen con el carro: a la L-4 (muelle B) o a la entrega al VC-1 (amarilla, dentro de C2), según las reglas de la lanzadera.
+- El combustible conserva su destino calculado.
+- Los rótulos dicen «L-4: tripulación y carga» o «Transporte orbital no tripulado».
+- El VC-1, la animación y su lanzamiento no se cobran: la tarifa del envío orbital (10 M) ya era ese servicio.
+
+**Límites de demostración del VC-1** (`DatosTransporteOrbital`):
+- Masa útil: 34 000 kg.
+- Bodega: Ø 7,2 × 23 m.
+- Anillo: 12 módulos de combustible.
+
+Contraste con las piezas actuales:
+
+| Envío | Masa | Largo de bodega | ¿Cabe? |
+|---|---|---|---|
+| Tanque ampliado + 10 tramos | 33 600 kg | 13,6 m | sí (por poco) |
+| Tanque ampliado + motor de alto empuje + 10 tramos | 37 200 kg | 17,5 m | **no**: masa |
+| Tanque ampliado + motor de alta eficiencia + sensor + relevo | ~7 000 kg | 22,8 m | sí (el caso más largo) |
+| Cualquier pieza sola | — | — | sí: todas caben en Ø 7,2 m |
+
+Si no cabe, el motivo aparece en la revisión y en el VC-1, la preparación no se puede cerrar y no se despacha. Nunca se reduce una pieza ni se cambia un catálogo. **Cambio de comportamiento:** las combinaciones muy pesadas que antes se podían cerrar ahora se bloquean por la masa del VC-1.
+
+**Recorrido al embarcar** (planos breves con modelos provisionales, sin física):
+1. **Envío** (solo si hace falta; si no, no se prepara ni se lanza ningún transporte):
+   - El VC-1 sale de la nave C2 con la bodega abierta y cierra sus compuertas.
+   - Se integra en el lanzador LC-2, en la plataforma exterior, y despega tras la cuenta atrás.
+   - Llega a la zona de servicio orbital. Por cada pieza: recepción, retirada de la de serie (queda en el soporte de piezas retiradas), colocación y comprobación.
+   - Se transfiere el combustible y la carga pequeña entra por el nodo de popa: «EM-4X PREPARADA».
+2. **Tripulación:**
+   - Carga de la bodega de la L-4, traslado desde el edificio, embarque, compuerta, comprobación, cuenta atrás y ascenso.
+   - La L-4 llega y atraca bajo el Mando, y su carga pasa a la EM-4X.
+   - Se entra en ExpedicionMVP ya a bordo, con el control del personaje.
+
+**Sin tarjetas narrativas** al llegar desde el hangar. **F2**, a bordo, abre un resumen opcional (qué subió en cada vehículo, qué se instaló y el coste ya cobrado). El acceso directo a ExpedicionMVP (pruebas, sin hangar) conserva sus tarjetas, porque allí no hay secuencias. Cada parte se puede omitir con Espacio/Intro después de haberla visto entera; el resultado es el mismo.
+
+**Sustitución de modelos:**
+- Las piezas provisionales del hangar, la L-4, el VC-1, el lanzador y el servicio orbital son *puntos de sustitución* con id.
+- Se usa la misma tabla de la EM-4X, con entradas de tipo **Escenario**.
+- *Prototipo → Arte y pruebas → 5. Conectar la tabla de sustitución al hangar* la asigna a la escena (con confirmación).
+- Detalles en la guía, sección 13.
+
+**Archivos:**
+- Nuevos: `MVP/DatosTransporteOrbital.cs`, `HangarTerrestre/ModeloComponentes.cs`, `ModeloTransporte.cs`, `ZonaTransporteOrbital.cs`, `EscenarioOrbital.cs`, `GeometriaProvisional.cs`, `SecuenciaEnvioOrbital.cs` y `ArteEM4X/SustitucionEscenario.cs`.
+- Modificados: `BalanceEM4X.cs`, `JuegoMVP.cs`, `HudMVP.cs`, `CargaHangar.cs`, `HangarTerrestre.cs`, `HudHangarTerrestre.cs`, `SecuenciaDespegue.cs`, `ModeloLanzadera.cs`, `IntegracionLanzadera.cs`, `RecursosVisualesEM4X.cs` (tipo Escenario, al final de la lista), `SustitucionVisualEM4X.cs` (ignora las entradas Escenario) y `Editor/CrearEscenaHangarExpedicion.cs`.
 

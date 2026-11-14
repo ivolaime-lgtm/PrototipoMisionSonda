@@ -52,7 +52,7 @@ namespace PrototipoMision
                 if (n <= 0) { preparados.Remove(id); return; }   // al volver a pedirlo hay que prepararlo otra vez
                 // El destino forma parte de la huella: si cambia la lanzadera y el lote cambia de vehículo, hay que volver a prepararlo.
                 firma += enLanzadera ? "|L" : "|E";
-                detalle += enLanzadera ? "\nviaja en la lanzadera L-4" : "\nviaja en el envío orbital";
+                detalle += enLanzadera ? "\nL-4: tripulación y carga" : "\nTransporte orbital no tripulado";
                 LoteCarga lo = new LoteCarga { id = id, nombre = nombre, cantidad = n, detalle = detalle, firma = firma, enLanzadera = enLanzadera };
                 string f;
                 lo.preparado = preparados.TryGetValue(id, out f) && f == firma;
@@ -64,15 +64,18 @@ namespace PrototipoMision
             Lote("suministros", "Suministros", sum, $"{sum} unidades (+{sum * BalanceEM4X.SegundosPorSuministro / 60f:0} min de soporte vital)", sum.ToString(), pequena);
             Lote("kits", "Kits de reparación", kits, $"{kits} kits (además de los {BalanceEM4X.KitsABordo} que ya hay a bordo)", kits.ToString(), pequena);
             Lote("sonda", "Sonda de despliegue", p.sonda ? 1 : 0, "1 sonda (sonda base del catálogo)", "1", pequena);
-            List<string> piezas = new List<string>();
-            if (p.motor > 0 && r.motor != null) piezas.Add(r.motor.nombre);
-            if (p.tanque > 0 && r.tanque != null) piezas.Add(r.tanque.nombre);
-            if (p.instrumento > 0 && r.instrumento != null) piezas.Add(r.instrumento.nombre);
-            if (p.relevo > 0 && r.relevo != null) piezas.Add(r.relevo.nombre);
-            Lote("componentes", "Componentes de sustitución", piezas.Count, string.Join("\n", piezas),
-                 $"{p.motor}|{p.tanque}|{p.instrumento}|{p.relevo}", false);   // componentes: siempre envío orbital
+            // Componentes de la EM-4X: un lote por pieza (cada una tiene su soporte en la zona del transporte orbital).
+            // Siempre viajan en el VC-1 (envío orbital no tripulado). Cambiar una pieza solo invalida su propio lote.
+            // Índice 0 = equipo ya instalado en órbita: no aparece como compra ni envío.
+            if (r.motor != null) Lote(IdComponente(TipoComponente.Motor), r.motor.nombre, p.motor > 0 ? 1 : 0, "Motor para la EM-4X · " + r.motor.nombre, p.motor.ToString(), false);
+            if (r.tanque != null) Lote(IdComponente(TipoComponente.Tanque), r.tanque.nombre, p.tanque > 0 ? 1 : 0, "Tanque para la EM-4X · " + r.tanque.nombre, p.tanque.ToString(), false);
+            if (r.instrumento != null) Lote(IdComponente(TipoComponente.Instrumento), r.instrumento.nombre, p.instrumento > 0 ? 1 : 0, "Instrumento para la EM-4X · " + r.instrumento.nombre, p.instrumento.ToString(), false);
+            if (r.relevo != null) Lote(IdComponente(TipoComponente.Relevo), r.relevo.nombre, p.relevo > 0 ? 1 : 0, "Relevo para la EM-4X · " + r.relevo.nombre, p.relevo.ToString(), false);
             return l;
         }
+
+        public static string IdComponente(TipoComponente t) => "comp_" + t.ToString().ToLower();
+        public static bool EsComponente(string id) => id != null && id.StartsWith("comp_");
 
         /// <summary>Marca el lote como preparado con la selección actual. No cambia cantidades ni presupuesto.</summary>
         public static void Preparar(LoteCarga lo) { if (lo != null) preparados[lo.id] = lo.firma; }

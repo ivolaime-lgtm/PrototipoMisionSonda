@@ -297,7 +297,7 @@ Las piezas que usan las misiones son las de B1–B4 y C1, y van antes que la dec
 
 **No cambia el encargo actual:** el módulo de Ciencia (secciones 2–10) sigue siendo la prioridad y sus medidas no cambian. Este apartado es un encargo **posterior y separado**. La lanzadera L-4 es el vehículo **terrestre** que sube a la tripulación. No es la EM-4X, que está en órbita.
 
-**Estado:** el juego ya tiene una versión con **geometría provisional** (escena HangarExpedicion, zona B). Las medidas están **leídas del código** (`Scripts/HangarTerrestre/ModeloLanzadera.cs` y `HangarTerrestre.cs`, `ConstruirIntegracion`). **Todavía no hay punto de sustitución** para estos modelos: se guardan en `Assets/_Arte/Hangar/Lanzadera/` y `Assets/_Arte/Hangar/Integracion/` y los conectará el integrador en un incremento posterior. Hasta entonces, solo bocetos o bloques.
+**Estado:** el juego ya tiene una versión con **geometría provisional** (escena HangarExpedicion, zona B). Las medidas están **leídas del código** (`Scripts/HangarTerrestre/ModeloLanzadera.cs` y `HangarTerrestre.cs`, `ConstruirIntegracion`). Los modelos se guardan en `Assets/_Arte/Hangar/Lanzadera/` y `Assets/_Arte/Hangar/Integracion/`. **Actualización 13-11:** ya hay puntos de sustitución (ids `L4/EtapaPrincipal`, `L4/Refuerzos/2` o `/4`, `L4/TanqueTransferencia/1` o `/2`, `L4/Bodega/1` o `/2`, `L4/Capsula`; ver sección 13). La cubierta del edificio ahora es abovedada (sección 13 B). Hasta validar AG, solo bocetos o bloques.
 
 **Referencia visual:** la imagen del edificio de montaje vertical (vehículo de pie, nave industrial alta, estructuras metálicas, plataformas, pasarelas, iluminación de trabajo y escala) es solo de **ambiente y composición**. No se copian el vehículo, sus marcas ni sus medidas. **Sin logotipos ni marcas reales** (ni de NASA ni de otras agencias).
 
@@ -337,3 +337,79 @@ Alturas: la pila se apila sin huecos, así que la altura total va de **26,5 m** 
 **Espacios libres:** alrededor del vehículo, un cilindro de 4,7 m de radio sin estructuras (refuerzos y animación de la grúa). Sobre el vehículo, el recorrido del gancho hasta 42 m. En el suelo, el paso del hangar y el camino del carro hasta el muelle.
 
 **Prioridad del apartado:** 1) cápsula y etapa principal; 2) un refuerzo, las dos bodegas y los dos tanques; 3) torre, plataforma y plataformas de trabajo; 4) puente grúa, pasarelas y nave del edificio. Todo **después** del módulo de Ciencia.
+
+## 13. Fichas separadas · estación del holograma, edificio de la L-4, transporte VC-1 y servicio orbital (13-11-2026)
+
+**No cambia el encargo de Ciencia** (secciones 2–10): sus medidas siguen igual. **Estado de estas fichas: posiciones y medidas PROVISIONALES**, leídas del código de esta versión y **todavía no comprobadas en Unity** (pruebas AG pendientes). Hasta que se validen, **solo bocetos o bloques; no arte final.** Unidades: metros, Y arriba. Las coordenadas son del hangar (x a la derecha desde la entrada, z hacia el fondo) salvo en D, que usa las de la EM-4X.
+
+**Cómo se sustituye un bloque:** cada pieza provisional sustituible es un *punto de sustitución* con un id (columna «Id»). El integrador añade en la misma tabla de la EM-4X (`Data/RecursosVisualesEM4X.asset`) una entrada de tipo **Escenario** con «Nombre» = id y el modelo. Después ejecuta una vez *Prototipo → Arte y pruebas → 5. Conectar la tabla de sustitución al hangar*. El modelo se pone como hijo del punto y sigue sus animaciones. El bloque deja de verse, pero sus colisiones, puntos de carga y lógica se quedan. Pivote del modelo = pivote del punto. No se cambia masa ni balance por el arte.
+
+### A · Estación del holograma (hangar, zona A)
+
+| Pieza | Id | Medidas | Posición y orientación | Pivote |
+|---|---|---|---|---|
+| Mesa y proyector | `A/MesaHolograma` | 5 × 0,9 × 5 | centro (0; 0,45; 22) | centro de la caja |
+| Consola de pieza (×3: motor, tanque, instrumento) | `A/Consola` | pedestal 1,2 × 1,1 × 0,6; pantalla 1,1 × 0,7 a 1,45 m | (−2,8; 0; 18,2), (0; 0; 17,6), (2,8; 0; 18,2); la pantalla mira hacia fuera de la mesa | base, centro |
+| Consola A2 · comparar y encargar | `A/Consola` | igual | (4,6; 0; 22), mira a +X | base, centro |
+| Terminal 2 · configuración orbital | — (terminal común) | igual | (−4,6; 0; 22), mira a −X | base, centro |
+| Pedestal de maqueta (×3) | `A/PedestalMaqueta` | 1,6 × 0,9 × 1,6 | (−3,4; 0,45; 26,4), (0; 0,45; 26,7), (3,4; 0,45; 26,4) | centro |
+| Maquetas | (las piezas de C, reducidas) | motor y tanque 1:10, instrumento 1:2; **altura máxima 1,6 m** | encima de los pedestales | — |
+| Tarima de la estación | — | 12 × 11, suelo | centro (0; 22) | — |
+
+**Espacio libre:** sobre la mesa, de 1 a 4,5 m de alto, el holograma (unos 4 m de largo); nada lo tapa. A los dos lados de la estación (|x| > 6) queda el paso. Los rótulos de las consolas están a 1,95 m, por debajo del holograma. **Elementos móviles:** ninguno (el holograma lo genera el juego). **Prioridad:** 1.
+
+### B · Edificio de la L-4 (zona B) · cubierta curva
+
+| Pieza | Id | Medidas y posición |
+|---|---|---|
+| Cubierta abovedada | `B/Cubierta` | semielipse sobre z (2–38): alero a 36 m, clave a 52 m; corre a lo largo de X (20,5–52,5). Perfil ovalado en los hastiales oeste y este. |
+| Arcos de estructura | (provisionales) | uno cada 6 m en x (22,5; 28,5; …), 0,6 m de ancho, 0,7 m bajo la cubierta |
+| Paredes | — | hasta 36 m; hastiales hasta la bóveda |
+| Puerta de salida | `B/PuertaSalida` | pared este, z 12–28, 42 m de alto; dos hojas de 8 m (cerradas) |
+| Puente grúa | `B/PuenteGrua` | viga 1,2 × 1,4 × 30 a 42 m, entre los rieles de z 5 y z 35 (a 42,6 m); el carro y el gancho se mueven |
+| Torres, plataformas, pasarelas, focos, muelle | ver sección 12 | sin cambios |
+| Edificio visto desde fuera | `B/EdificioExterior` | misma forma (32 × 36 m, alero 36, clave 52), puerta de 16 × 42 m hacia la plataforma |
+
+**Espacios que no se invaden:**
+- El gálibo de la lanzadera: cilindro de 4,7 m de radio hasta 37,5 m de alto en (36,5; 20).
+- El recorrido de salida: franja z 14–26, desde x 30,5 hasta la puerta, 40 m de alto.
+- El puente grúa: z 5–35 a 42 m. La bóveda pasa de 44,8 m allí.
+
+**Pivotes:** la cubierta tiene el pivote en el centro de la planta, en el suelo; cada hoja de puerta, en el centro de su base. **Prioridad:** 3.
+
+### C · Transporte orbital no tripulado VC-1 (zona C2, nave anexa detrás del hangar)
+
+| Pieza | Id | Medidas | Notas |
+|---|---|---|---|
+| Módulo de servicio | `VC1/ModuloServicio` | Ø 7,6 × 4 (z 0–4) + 4 toberas de maniobra Ø 1 y paneles solares plegados | pivote: centro de la popa (z = 0) |
+| Bodega principal | `VC1/Bodega` | Ø 7,6 exterior / 7,2 útil × 23 (z 4–27), abierta por arriba | **2 compuertas móviles** con bisagra en los bordes superiores, giran 110° hacia fuera |
+| Anillo de carga menor | `VC1/Anillo` | Ø 7,6 × 4 (z 27–31) | 12 módulos de combustible (3 × 2 × 2) y 3 contenedores |
+| Proa y atraque | `VC1/Proa` | Ø 2,2 × 1,5 (z 31–32,5) | — |
+| Lanzador provisional LC-2 | `LC2/Lanzador` | etapa central Ø 8 × 40; 2 aceleradores Ø 3,2 × 24 a x ±5,8; cofia Ø 8,6 × 32 (cubre el VC-1) | pivote: base, centro. Elementos móviles: cofia (se cierra) y llama |
+| Plataforma exterior | `LC2/Plataforma` | 22 × 22 × 1 | fuera de los edificios |
+| Contenedor de carga pequeña | `Carga/suministros`, `Carga/kits`, `Carga/sonda` | 0,75 × 0,7 × 1,1 (sonda 0,8 × 0,9 × 1,2) | pivote: centro de la base |
+| Módulo de combustible | `Carga/ModuloCombustible` | Ø 2,4 × 1,4 | uno por tramo de 3000 kg |
+| Soportes de preparación (×4) | `C2/Soporte` | 3 × 1 × (13,5 tanque · 5,5 motor · 2,6 instrumento y relevo) | en x −15; z 80 (tanque), 90,5 (motor), 95,5 (instrumento), 99 (relevo) |
+| Puente grúa de C2 | `C2/PuenteGrua` | viga 27,5 × 0,9 × 1 a 16 m, recorre z; carro y gancho móviles | levanta las piezas a 12,5 m |
+| Nave C2 | `C2/NaveExterior` (vista de fuera) | interior x −32 a −2,5 · z 64,5 a 104 · 18 m de alto; paso desde el hangar de 6 × 6 m (x −9 a −3) | VC-1 tumbado en 4 cunas (6 × 1 × 1,2), eje a 4,6 m, popa en z 70, x −26 |
+| Componentes a escala real | `EM4X/Motor/1`, `EM4X/Tanque/2`, `EM4X/Instrumento/2`, `EM4X/Relevo/1`… | motor: Ø 4,5·√(empuje/400 kN) × 4·(velocidad de salida/4000) · tanque: Ø 4,6 × 13·(capacidad/36 000) · cámara Ø 1,1 × 1,5 · espectrómetro 1,2 × 1,2 × 1,5 · sensor Ø 1,1 × 2,1 · relevo 0,8 × 0,8 × 1,2 | pivote: centro de la cara de montaje; el largo sale hacia +Z |
+
+**Espacios que no se invaden:**
+- El volumen de la bodega (Ø 7,2) y el recorrido de la grúa, entre los soportes y la bodega a 12,5 m.
+- El pasillo este de la nave C2 (x −11 a −3) y la entrega de carga pequeña (x −9 a −3, z 66–72).
+
+**Prioridad:** 2.
+
+### D · Servicio orbital (coordenadas de la EM-4X: proa +Z, Ciencia −X, Comunicaciones +X)
+
+| Pieza | Id | Medidas | Posición |
+|---|---|---|---|
+| Plataforma de servicio | `Orbita/PlataformaServicio` | viga 3 × 1,4 × 44; dos brazos de unión 1 × 8 × 1 | (0; −12; −24), bajo la etapa de propulsión |
+| Soporte de recepción | `Orbita/SoporteRecepcion` | bandeja 6 × 0,3 × 6 | (7; −10,5; −30) |
+| Soporte de piezas retiradas | `Orbita/SoporteRetiradas` | bastidor 6 × 0,3 × 16, 4 huecos cada 3,4 m | (−8; −10,5; −14). Las piezas retiradas quedan sujetas aquí. |
+| Brazo guiado (visual) | (provisional) | base 1,6 × 1,2 × 1,6 en (0; −11; −20); brazo de 0,5 × 0,5 que se estira hasta la pieza | **móvil** |
+| Puntos de colocación | — | motor (0; 0; −37) hacia −Z · tanque (0; 0; −23) hacia −Z, dentro de la etapa · instrumento (−15,2; 0; 1,5) hacia −X · relevo (13,2; 0; 1,5) hacia +X | simplificación, no plano de ingeniería |
+| Llegada del VC-1 | — | popa en (0; −21; −46), bodega hacia +Y | — |
+| Atraque de la L-4 | — | (0; −3,2; 11), bajo el Mando | la cápsula sube hacia +Y |
+
+**Espacios que no se invaden:** los módulos de la EM-4X (su distribución y medidas no cambian) y el volumen de atraque bajo el Mando. **Prioridad:** 4.

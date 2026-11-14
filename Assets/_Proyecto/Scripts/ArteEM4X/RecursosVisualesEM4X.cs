@@ -16,7 +16,10 @@ namespace PrototipoMision
         /// <summary>Todos los paneles de puerta (o solo los de una unión). Pivote: centro. +Z = cara que mira al jugador.</summary>
         PanelPuerta,
         /// <summary>Utilería provisional del MVP por nombre exacto: «Kit», «Baliza de reparación», «Marca de puesto».</summary>
-        Utileria
+        Utileria,
+        /// <summary>Escenario fuera de la EM-4X (hangar, edificio de la L-4, L-4, VC-1, servicio orbital) por el id de su
+        /// PuntoSustitucion (p. ej. «L4/Capsula»). Pivote: el del punto (centro de la base de la pieza provisional).</summary>
+        Escenario
     }
 
     public enum AjusteSustitucion
@@ -34,7 +37,7 @@ namespace PrototipoMision
         public TipoSustitucion tipo;
         [Tooltip("Id del módulo (NC, MA, CI, CO, IN, HA, BO, N2, SI, ES, PR, LZ). Para Casco y Equipo.")]
         public string modulo = "CI";
-        [Tooltip("Equipo o utilería: nombre EXACTO de la pieza provisional. Hoja o panel: id de la unión (ais_ciencia…) o vacío = todas.")]
+        [Tooltip("Equipo o utilería: nombre EXACTO de la pieza provisional. Hoja o panel: id de la unión (ais_ciencia…) o vacío = todas. Escenario: id del punto (L4/Capsula…).")]
         public string nombre = "";
         [Tooltip("Prefab o modelo importado. Si falta, se queda la geometría provisional.")]
         public GameObject prefab;
@@ -46,6 +49,7 @@ namespace PrototipoMision
             : tipo == TipoSustitucion.Equipo ? "equipo/" + modulo + "/" + nombre
             : tipo == TipoSustitucion.HojaPuerta ? "hoja/" + (string.IsNullOrEmpty(nombre) ? "todas" : nombre)
             : tipo == TipoSustitucion.PanelPuerta ? "panel/" + (string.IsNullOrEmpty(nombre) ? "todos" : nombre)
+            : tipo == TipoSustitucion.Escenario ? "escenario/" + nombre
             : "utileria/" + nombre;
     }
 

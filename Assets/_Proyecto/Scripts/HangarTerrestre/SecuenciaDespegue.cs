@@ -7,23 +7,39 @@ using UnityEngine.InputSystem;
 namespace PrototipoMision
 {
     /// <summary>
-    /// SECUENCIA BREVE DE DESPEGUE (solo representación; no es pilotable ni una simulación atmosférica).
-    /// Traslado desde el edificio de integración a la plataforma → acceso y embarque → asiento y cierre de compuerta →
-    /// comprobación de la preparación → cuenta atrás → encendido → ascenso → transición a la llegada a la EM-4X.
-    /// La lanzadera L-4 se monta con ModeloLanzadera y la configuración CONFIRMADA (la misma que se vio en la integración).
-    /// Es terrestre y distinta de la EM-4X, que espera en órbita.
+    /// RECORRIDO VISUAL DEL DESPACHO Y EL DESPEGUE (solo representación; nada de esto es pilotable ni simulación).
     ///
-    /// Se puede omitir (Espacio) solo después de haberla visto una vez en esta sesión. Omitirla no cambia nada: los
-    /// requisitos se comprueban ANTES de empezar y al final se llama a la misma acción que al terminarla.
+    /// 1. ENVÍO ORBITAL (solo si hace falta; SecuenciaEnvioOrbital.cs): VC-1 cargado → traslado a la plataforma exterior →
+    ///    integración en su lanzador → cuenta atrás, encendido y lanzamiento → llegada a la zona de servicio orbital →
+    ///    recepción, retirada de la pieza anterior, colocación y comprobación de cada componente → combustible y carga →
+    ///    EM-4X preparada. Sin envío, no se prepara ni se lanza ningún transporte.
+    /// 2. TRIPULACIÓN (L-4 con la configuración CONFIRMADA): carga de la bodega → traslado desde el edificio de integración a
+    ///    la plataforma → acceso y embarque → cierre de compuerta → comprobación → cuenta atrás → encendido y ascenso →
+    ///    llegada y atraque bajo el Mando de la EM-4X → a bordo (control del personaje en ExpedicionMVP).
+    ///
+    /// Todo se decide ANTES de empezar (requisitos, preparación cerrada, costes): las secuencias solo lo muestran. Cada
+    /// parte se puede omitir (Espacio/Intro) después de haberla visto una vez en la sesión; omitirla llama a lo mismo que
+    /// verla entera, así que el estado final es idéntico.
     /// </summary>
-    public class SecuenciaDespegue : MonoBehaviour
+    public partial class SecuenciaDespegue : MonoBehaviour
     {
-        static bool vista;
+        static bool vista, vistaEnvio;
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void Reiniciar() { vista = false; }
+        static void Reiniciar() { vista = false; vistaEnvio = false; }
+
+        enum Segmento { Envio, Tripulacion }
+        Segmento segmento;
+        ResumenExpedicion resumen;
+        PreparacionExpedicion preparacion;
+        CatalogoMision catalogo;
+        Func<Color, bool, Material> fabricaMat;
+        string progreso = "";
 
         public bool Activa { get; private set; }
+        /// <summary>La parte de la tripulación ya se vio entera en esta sesión (se puede omitir).</summary>
         public static bool PuedeOmitirse => vista;
+        /// <summary>La parte del envío orbital ya se vio entera en esta sesión (se puede omitir).</summary>
+        public static bool PuedeOmitirseEnvio => vistaEnvio;
 
         static readonly Vector3 Lugar = new Vector3(5000f, 0f, 0f);     // lejos del hangar: plataforma de lanzamiento
         const float AlturaPlataformaMovil = 2f;
@@ -83,10 +99,19 @@ namespace PrototipoMision
 
             // Edificio de integración visto desde fuera (de aquí sale la lanzadera montada)
             Vector3 e = SalidaEdificio + new Vector3(0f, 0f, 18f);
-            Caja("Edificio de integración (izquierda)", raiz, e + new Vector3(-13f, 23f, 0f), new Vector3(10f, 46f, 36f), pared);
-            Caja("Edificio de integración (derecha)", raiz, e + new Vector3(13f, 23f, 0f), new Vector3(10f, 46f, 36f), pared);
-            Caja("Edificio de integración (dintel)", raiz, e + new Vector3(0f, 44f, 0f), new Vector3(16f, 4f, 36f), pared);
-            Caja("Edificio de integración (fondo)", raiz, e + new Vector3(0f, 23f, 17.5f), new Vector3(16f, 46f, 1f), oscuro);
+            // Misma forma que en el hangar: paredes hasta 36 m, cubierta abovedada de perfil ovalado hasta 52 m y puerta de 16 × 42 m
+            Transform edif = new GameObject("Edificio de integración de la L-4 (exterior)").transform;
+            edif.SetParent(raiz, false);
+            edif.localPosition = e;
+            SustitucionEscenario.Punto(edif, "B/EdificioExterior");
+            Caja("Pared (oeste)", edif, new Vector3(-16f, 18f, 0f), new Vector3(0.5f, 36f, 36f), pared);
+            Caja("Pared (este)", edif, new Vector3(16f, 18f, 0f), new Vector3(0.5f, 36f, 36f), pared);
+            Caja("Fachada (a la izquierda de la puerta)", edif, new Vector3(-12f, 18f, -18f), new Vector3(8f, 36f, 0.5f), pared);
+            Caja("Fachada (a la derecha de la puerta)", edif, new Vector3(12f, 18f, -18f), new Vector3(8f, 36f, 0.5f), pared);
+            Caja("Fondo", edif, new Vector3(0f, 18f, 18f), new Vector3(32f, 36f, 0.5f), oscuro);
+            GeometriaProvisional.Hastial("Hastial de la fachada", edif, false, -18f, -16f, 16f, 36f, 16f, b => Mathf.Abs(b) < 8f ? 42f : 36f, pared, false);
+            GeometriaProvisional.Hastial("Hastial del fondo", edif, false, 18f, -16f, 16f, 36f, 16f, b => 36f, oscuro, false);
+            GeometriaProvisional.Boveda("Cubierta abovedada", edif, false, -18.3f, 18.3f, -16.3f, 16.3f, 36f, 16f, 0.5f, pared, false);
 
             GameObject cg = new GameObject("Cámara del despegue");
             cam = cg.AddComponent<Camera>();
@@ -108,6 +133,8 @@ namespace PrototipoMision
         void MontarLanzadera(ConfiguracionLanzadera config, Func<Color, bool, Material> fabrica)
         {
             if (modelo != null) modelo.Destruir();        // tras el ascenso cuelga de «raiz», no del conjunto
+            foreach (Transform viejo in cargaL4) if (viejo != null) Destroy(viejo.gameObject);
+            cargaL4.Clear();
             if (conjunto != null) Destroy(conjunto.gameObject);
             conjunto = new GameObject("Lanzadera L-4 y plataforma móvil").transform;
             conjunto.SetParent(raiz, false);
@@ -135,6 +162,7 @@ namespace PrototipoMision
             Caja("Asiento", cabina, new Vector3(0f, -0.9f, -0.3f), new Vector3(0.7f, 0.2f, 1.5f), mNaranja);
             compuerta = Caja("Compuerta", cabina, new Vector3(-1.85f, 0f, -1.2f), new Vector3(0.08f, 2f, 1.1f), mNaranja);
             cabina.gameObject.SetActive(false);
+            modelo.Interior = cabina;
         }
 
         static AudioClip Tono(string nombre, float hz, float s, float ruido)
@@ -162,21 +190,19 @@ namespace PrototipoMision
         /// Empieza la secuencia. «comprobacion» son las líneas de la comprobación (requisitos ya cumplidos); «config» es la
         /// configuración CONFIRMADA de la lanzadera; «fabrica» da los materiales (null = propios).
         /// </summary>
-        public void Iniciar(Vector3 ojos, List<string> comprobacion, ConfiguracionLanzadera config, Func<Color, bool, Material> fabrica, Action fin)
+        public void Iniciar(Vector3 ojos, List<string> comprobacion, ResumenExpedicion r, PreparacionExpedicion p, CatalogoMision cat,
+                            Func<Color, bool, Material> fabrica, Action fin)
         {
             if (cam == null) Construir();
-            cam.transform.SetParent(null, true);          // antes de rehacer la lanzadera (la cámara pudo quedar en la cabina)
-            MontarLanzadera(config, fabrica);
+            resumen = r;
+            segmento = HayEnvio ? Segmento.Envio : Segmento.Tripulacion;
+            lineasVisibles = 0; grande = ""; progreso = "";
+            preparacion = p.Copia();
+            catalogo = cat;
+            fabricaMat = fabrica ?? new Func<Color, bool, Material>(Mat);
             lineas = comprobacion;
             alTerminar = fin;
-            fundido = 0f; lineasVisibles = 0; terminada = false;
-            titulo = ""; grande = "";
-            conjunto.localPosition = SalidaEdificio;
-            cam.transform.SetParent(null, true);
-            cam.backgroundColor = cieloTierra;
-            Dentro(false);
-            cam.transform.position = Lugar + new Vector3(55f, 14f, 40f);
-            cam.transform.LookAt(conjunto.position + Vector3.up * 16f);
+            terminada = false;
             cam.enabled = true;
             cam.tag = "MainCamera";
             Activa = true;
@@ -185,11 +211,42 @@ namespace PrototipoMision
             StartCoroutine(Ejecutar());
         }
 
+        bool HayEnvio => resumen != null && resumen.transporte != null && resumen.transporte.necesario;
+
         IEnumerator Ejecutar()
         {
-            // 0 · Del hangar a la salida (breve)
-            titulo = "EMBARQUE CONFIRMADO";
+            titulo = "EMBARQUE CONFIRMADO"; grande = ""; progreso = "";
             for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / 0.5f) yield return null;
+            if (HayEnvio)
+            {
+                segmento = Segmento.Envio;
+                yield return EjecutarEnvio();
+                vistaEnvio = true;
+            }
+            yield return EjecutarTripulacion();
+            Terminar();
+        }
+
+        /// <summary>Prepara la parte de la tripulación desde cero (también tras omitir el envío).</summary>
+        void PrepararTripulacion()
+        {
+            segmento = Segmento.Tripulacion;
+            LimpiarEnvio();
+            cam.transform.SetParent(null, true);          // antes de rehacer la lanzadera (la cámara pudo quedar en la cabina)
+            MontarLanzadera(preparacion.lanzadera, fabricaMat);
+            fundido = 1f; lineasVisibles = 0;
+            titulo = ""; grande = ""; progreso = "TRIPULACIÓN · L-4";
+            conjunto.localPosition = SalidaEdificio;
+            cam.backgroundColor = cieloTierra;
+            Dentro(false);
+            cam.transform.position = Lugar + new Vector3(55f, 14f, 40f);
+            cam.transform.LookAt(conjunto.position + Vector3.up * 16f);
+        }
+
+        IEnumerator EjecutarTripulacion()
+        {
+            PrepararTripulacion();
+            yield return CargaL4();
 
             // 1 · Traslado: la lanzadera montada sale del edificio de integración hacia la plataforma (no es la plataforma)
             titulo = "TRASLADO A LA PLATAFORMA · L-4 montada: " + DatosLanzadera.Resumen(ConfigActual());
@@ -300,10 +357,11 @@ namespace PrototipoMision
                 yield return null;
             }
 
-            // 8 · Fundido y transición a la llegada (mensajes existentes de ExpedicionMVP)
-            for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / 1f) yield return null;
+            // 8 · Llegada a la órbita de la base y atraque bajo el Mando de la EM-4X
+            for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / 0.6f) yield return null;
+            yield return LlegadaL4();
+            for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / 0.8f) yield return null;
             fundido = 1f;
-            Terminar();
         }
 
         ConfiguracionLanzadera configActual;
@@ -314,11 +372,18 @@ namespace PrototipoMision
             for (float x = 0f; x < s; x += Time.deltaTime) yield return null;
         }
 
+        IEnumerator TripulacionYFin()
+        {
+            yield return EjecutarTripulacion();
+            Terminar();
+        }
+
         void Terminar()
         {
             if (terminada) return;
             terminada = true;
             vista = true;
+            if (HayEnvio) vistaEnvio = true;
             StopAllCoroutines();
             fundido = 1f;
             alTerminar?.Invoke();
@@ -331,6 +396,8 @@ namespace PrototipoMision
             Activa = false;
             terminada = true;
             fundido = 0f;
+            LimpiarEnvio();
+            if (orbita != null) { orbita.Destruir(); orbita = null; }
             if (cam != null) { cam.enabled = false; cam.tag = "Untagged"; }
         }
 
@@ -338,7 +405,14 @@ namespace PrototipoMision
         {
             if (!Activa || terminada) return;
             Keyboard k = Keyboard.current;
-            if (vista && k != null && (k.spaceKey.wasPressedThisFrame || k.enterKey.wasPressedThisFrame)) Terminar();
+            if (k == null || !(k.spaceKey.wasPressedThisFrame || k.enterKey.wasPressedThisFrame)) return;
+            if (segmento == Segmento.Envio && vistaEnvio)
+            {
+                // Omitir el envío: solo se salta su representación; se sigue con la tripulación (mismo estado final)
+                StopAllCoroutines();
+                StartCoroutine(TripulacionYFin());
+            }
+            else if (segmento == Segmento.Tripulacion && vista) Terminar();
         }
 
         void OnGUI()
@@ -362,6 +436,7 @@ namespace PrototipoMision
             GUI.DrawTexture(new Rect(0f, 1010f, ancho, 70f), Texture2D.whiteTexture);
             GUI.color = c;
             GUI.Label(new Rect(0f, 8f, ancho, 54f), titulo, sTitulo);
+            if (progreso.Length > 0) GUI.Label(new Rect(ancho - 420f, 76f, 400f, 30f), progreso, sPista);
             if (grande.Length > 0) GUI.Label(new Rect(0f, 380f, ancho, 160f), grande, sGrande);
             if (lineasVisibles > 0)
             {
@@ -372,9 +447,9 @@ namespace PrototipoMision
                 for (int i = 0; i < lineasVisibles && i < lineas.Count; i++)
                     GUI.Label(new Rect(r.x + 16f, r.y + 14f + i * 34f, r.width - 32f, 34f), "<color=#59CC73>[OK]</color> " + lineas[i], sTexto);
             }
-            GUI.Label(new Rect(0f, 1022f, ancho, 46f), vista
-                ? "Representación del despegue (lanzadera terrestre provisional, no pilotable) · ESPACIO o INTRO: omitir"
-                : "Representación del despegue (lanzadera terrestre provisional, no pilotable) · se podrá omitir las próximas veces", sPista);
+            bool omitible = segmento == Segmento.Envio ? vistaEnvio : vista;
+            string que = segmento == Segmento.Envio ? "Representación simplificada del envío orbital no tripulado (VC-1)" : "Representación del despegue de la tripulación (L-4, no pilotable)";
+            GUI.Label(new Rect(0f, 1022f, ancho, 46f), que + (omitible ? " · ESPACIO o INTRO: omitir esta parte" : " · se podrá omitir las próximas veces"), sPista);
             if (fundido > 0f)
             {
                 GUI.color = new Color(0f, 0f, 0f, Mathf.Clamp01(fundido));
