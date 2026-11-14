@@ -400,16 +400,29 @@ Alturas: la pila se apila sin huecos, así que la altura total va de **26,5 m** 
 
 **Prioridad:** 2.
 
-### D · Servicio orbital (coordenadas de la EM-4X: proa +Z, Ciencia −X, Comunicaciones +X)
+### D · Servicio orbital (coordenadas de la EM-4X: proa +Z, Ciencia −X, Comunicaciones +X) — actualizada el 14-11-2026
+
+En las secuencias se usa la **EM-4X real** (la misma geometría y la misma sustitución de arte que en la expedición). La plataforma de servicio se ha trasladado **detrás y debajo** de la etapa de propulsión, para que el VC-1 y las piezas no crucen la nave ni los paneles solares (x 3,5–19 a cada lado, z −35,2 a −25,2, y 0). Todas las posiciones están en `ConfiguracionJuego → puntos` (ver `ADAPTACION_REQUISITOS.md`).
 
 | Pieza | Id | Medidas | Posición |
 |---|---|---|---|
-| Plataforma de servicio | `Orbita/PlataformaServicio` | viga 3 × 1,4 × 44; dos brazos de unión 1 × 8 × 1 | (0; −12; −24), bajo la etapa de propulsión |
-| Soporte de recepción | `Orbita/SoporteRecepcion` | bandeja 6 × 0,3 × 6 | (7; −10,5; −30) |
-| Soporte de piezas retiradas | `Orbita/SoporteRetiradas` | bastidor 6 × 0,3 × 16, 4 huecos cada 3,4 m | (−8; −10,5; −14). Las piezas retiradas quedan sujetas aquí. |
-| Brazo guiado (visual) | (provisional) | base 1,6 × 1,2 × 1,6 en (0; −11; −20); brazo de 0,5 × 0,5 que se estira hasta la pieza | **móvil** |
-| Puntos de colocación | — | motor (0; 0; −37) hacia −Z · tanque (0; 0; −23) hacia −Z, dentro de la etapa · instrumento (−15,2; 0; 1,5) hacia −X · relevo (13,2; 0; 1,5) hacia +X | simplificación, no plano de ingeniería |
-| Llegada del VC-1 | — | popa en (0; −21; −46), bodega hacia +Y | — |
-| Atraque de la L-4 | — | (0; −3,2; 11), bajo el Mando | la cápsula sube hacia +Y |
+| Plataforma de servicio | `Orbita/PlataformaServicio` | viga 2,5 × 1,2 × 44; dos brazos de unión 1 × 6,4 × 1 hasta la etapa | viga centrada en (0; −10; −44), de z −66 a −22; brazos en z −25 y −33 |
+| Soporte de recepción | `Orbita/SoporteRecepcion` | bandeja 6 × 0,3 × 6 | cara superior en (5; −9; −56) |
+| Soporte de piezas retiradas | `Orbita/SoporteRetiradas` | bastidor 6 × 0,3 × 16; las piezas quedan tumbadas hacia −X | cara superior en (−8; −9; −50) |
+| Toma de servicio (viga) | `Orbita/TomaServicio` | cubo 1,2 m; de aquí sale la conexión de servicio (carga, sin paso de personas) | (1,25; −11; −62) |
+| Remolcador de servicio guiado (visual) | (provisional) | 1,4 × 0,7 × 1,4 | **móvil**: acompaña a cada pieza |
+| Puntos de colocación | — | motor (0; 0; −37) hacia −Z · tanque (0; 0; −23) hacia −Z, dentro de la etapa · instrumento (−15,2; 0; 1,5) hacia −X · **relevo (9,7; 3; 1,5) hacia +Y, sobre Comunicaciones** (la punta la ocupa la antena) | simplificación, no plano de ingeniería |
+| VC-1 aparcado | — | popa en (14; −14; −80), proa hacia +Z, bodega hacia +Y; puerto de servicio en su costado de babor, 18 m desde la popa | — |
+| Atraque de la L-4 | — | el morro de la cápsula toca el puerto del Mando, (0; −3; 11,7) | la L-4 sube hacia +Y |
 
-**Espacios que no se invaden:** los módulos de la EM-4X (su distribución y medidas no cambian) y el volumen de atraque bajo el Mando. **Prioridad:** 4.
+**Espacios que no se invaden:** los módulos de la EM-4X (su distribución y medidas no cambian), los paneles solares, el volumen bajo el Mando (atraque) y el pasillo seguro por detrás de la nave (z −62, y 4). **Prioridad:** 4.
+
+### E · Piezas nuevas de las secuencias (14-11-2026)
+
+| Pieza | Id | Medidas | Notas |
+|---|---|---|---|
+| Cabina de la L-4 (interior) | `L4/Cabina` | 3,6 × 2,8 × 2,8, con asiento, consola, compuerta lateral y **escotilla superior 1,2 × 1,2** (puerto de atraque) | se ve desde el asiento, en tierra y en órbita; pivote en el centro de la cabina |
+| Planeta de los planos de espacio | `Espacio/Planeta` | esfera de radio 1500 m, 200 m por debajo del vehículo | solo fondo; sin rótulos ni marcas reales |
+| Morro de la cápsula (puerto de atraque) | dentro de `L4/Capsula` | Ø 2 × 0,5 con tapa de 1,1 × 1,1 | la tapa es una pieza aparte; con la cámara dentro de la cápsula el exterior no se dibuja |
+| Cofia del LC-2 | dentro de `LC2/Lanzador` | Ø 8,6 × 32 (+ punta) | en el espacio se parte en **dos mitades**: si se modela, que sean dos piezas simétricas |
+| Aceleradores del LC-2 | dentro de `LC2/Lanzador` | Ø 3,2 × 24 | agrupados en «Aceleradores» (se ocultan en el plano de espacio) |

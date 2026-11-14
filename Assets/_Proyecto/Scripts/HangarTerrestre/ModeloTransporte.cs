@@ -171,10 +171,14 @@ namespace PrototipoMision
 
         public void Destruir() { if (Raiz != null) UnityEngine.Object.Destroy(Raiz.gameObject); }
 
+        /// <summary>Altura (local al lanzador) donde se apoya la popa del VC-1: la cara superior de la etapa central.</summary>
+        public static float ApoyoVC1 => 0.5f + ConfiguracionJuego.Actual.lanzadorVC1.alturaEtapa;
+
         /// <summary>
         /// Lanzador provisional LC-2 para la plataforma exterior: etapa central y dos aceleradores, con el VC-1 encima dentro
         /// de una cofia. Devuelve la raíz del conjunto (de pie, base en y = 0). El VC-1 queda en «vc1» (hijo del conjunto).
         /// </summary>
+
         public static Transform Lanzador(Transform padre, Vector3 pos, Func<Color, bool, Material> mat, out Transform cofia, out Transform llama)
         {
             Transform l = new GameObject(DatosTransporteOrbital.NombreLanzador + " (provisional)").transform;
@@ -194,16 +198,21 @@ namespace PrototipoMision
                 g.GetComponent<Renderer>().sharedMaterial = m;
                 return g;
             }
-            Cilv("Etapa central", new Vector3(0f, 21f, 0f), 8f, 40f, gris);
-            Cilv("Franja", new Vector3(0f, 38f, 0f), 8.05f, 1f, rojo);
-            Cilv("Toberas", new Vector3(0f, 0.5f, 0f), 5f, 1f, oscuro);
-            foreach (float x in new[] { -5.8f, 5.8f })
+            // Proporciones VISUALES (ConfiguracionJuego → lanzadorVC1). Por defecto: etapa Ø 8 × 40, aceleradores Ø 3,2 × 24, cofia Ø 8,6 × 32.
+            ProporcionesLC2 c = ConfiguracionJuego.Actual.lanzadorVC1;
+            float he = c.alturaEtapa, top = 1f + he;
+            Cilv("Etapa central", new Vector3(0f, 1f + he / 2f, 0f), c.diametroEtapa, he, gris);
+            Cilv("Franja", new Vector3(0f, top - 3f, 0f), c.diametroEtapa + 0.05f, 1f, rojo);
+            Cilv("Toberas", new Vector3(0f, 0.5f, 0f), c.diametroEtapa * 0.625f, 1f, oscuro);
+            Transform aceleradores = new GameObject("Aceleradores").transform;
+            aceleradores.SetParent(l, false);
+            foreach (float x in new[] { -c.separacionAcelerador, c.separacionAcelerador })
             {
-                Cilv("Acelerador", new Vector3(x, 13f, 0f), 3.2f, 24f, gris);
-                Cilv("Morro del acelerador", new Vector3(x, 25.6f, 0f), 2.2f, 1.2f, rojo);
+                Cilv("Acelerador", new Vector3(x, 1f + c.alturaAcelerador / 2f, 0f), c.diametroAcelerador, c.alturaAcelerador, gris).transform.SetParent(aceleradores, true);
+                Cilv("Morro del acelerador", new Vector3(x, 1.6f + c.alturaAcelerador, 0f), c.diametroAcelerador * (2.2f / 3.2f), 1.2f, rojo).transform.SetParent(aceleradores, true);
             }
-            cofia = Cilv("Cofia (cubre el VC-1)", new Vector3(0f, 41f + 16f, 0f), 8.6f, 32f, gris).transform;
-            Cilv("Punta de la cofia", new Vector3(0f, 41f + 33f, 0f), 5f, 2f, gris);
+            cofia = Cilv("Cofia (cubre el VC-1)", new Vector3(0f, top + c.alturaCofia / 2f, 0f), c.diametroCofia, c.alturaCofia, gris).transform;
+            Cilv("Punta de la cofia", new Vector3(0f, top + c.alturaCofia + 1f, 0f), c.diametroCofia * (5f / 8.6f), 2f, gris).transform.SetParent(cofia, true);
             GameObject ll = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ll.name = "Llama del lanzador";
             Collider cl = ll.GetComponent<Collider>(); cl.enabled = false; UnityEngine.Object.Destroy(cl);

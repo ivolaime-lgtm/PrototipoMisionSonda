@@ -174,12 +174,13 @@ namespace PrototipoMision
 
         public static MedidasTransporte Medidas(TipoComponente tipo, int indice, CatalogoMision cat)
         {
+            int I(int n) => Mathf.Clamp(indice, 0, Mathf.Max(0, n - 1));     // índice dentro de la lista (por si se acortó)
             switch (tipo)
             {
-                case TipoComponente.Motor: return DatosTransporteOrbital.Motor(BalanceEM4X.Motores(cat.catalogoNave)[indice]);
-                case TipoComponente.Tanque: return DatosTransporteOrbital.Tanque(BalanceEM4X.Tanques(cat.catalogoNave)[indice]);
-                case TipoComponente.Instrumento: return DatosTransporteOrbital.Instrumento(BalanceEM4X.Instrumentos(cat)[indice]);
-                default: return DatosTransporteOrbital.Relevo(cat.orbitas[indice]);
+                case TipoComponente.Motor: { var l = BalanceEM4X.Motores(cat.catalogoNave); return DatosTransporteOrbital.Motor(l[I(l.Count)]); }
+                case TipoComponente.Tanque: { var l = BalanceEM4X.Tanques(cat.catalogoNave); return DatosTransporteOrbital.Tanque(l[I(l.Count)]); }
+                case TipoComponente.Instrumento: { var l = BalanceEM4X.Instrumentos(cat); return DatosTransporteOrbital.Instrumento(l[I(l.Count)]); }
+                default: return DatosTransporteOrbital.Relevo(cat.orbitas[I(cat.orbitas.Count)]);
             }
         }
 

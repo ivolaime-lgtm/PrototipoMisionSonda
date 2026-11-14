@@ -95,7 +95,7 @@ namespace PrototipoMision
         /// <summary>Combustible que ya está a bordo al empezar (no se cobra ni se transporta).</summary>
         public const float CombustibleRemanenteKg = 6000f;
         public const float TramoCombustibleKg = 3000f;
-        public const float CosteTramoCombustibleMUSD = 1.2f;
+        public static float CosteTramoCombustibleMUSD => ConfiguracionJuego.Actual.tarifas.tramoCombustibleMUSD;   // 1,2 por defecto
 
         // ------------------------------------------------------------------ Maniobra — DEMOSTRACIÓN
         public static AjustesManiobra Maniobra => new AjustesManiobra
@@ -108,16 +108,16 @@ namespace PrototipoMision
             estabilizacionInicial = true
         };
 
-        // ------------------------------------------------------------------ Tarifas (M USD) — DEMOSTRACIÓN, configurables aquí
+        // ------------------------------------------------------------------ Tarifas (M USD) — DEMOSTRACIÓN. Valores en ConfiguracionJuego (tarifas)
         /// <summary>Envío orbital SIN tripulación: cargo fijo si queda algo que no viaja en la lanzadera (se cobra una vez).</summary>
-        public const float TarifaTransporteOrbitalMUSD = 10f;
+        public static float TarifaTransporteOrbitalMUSD => ConfiguracionJuego.Actual.tarifas.transporteOrbitalMUSD;   // 10 por defecto
         /// <summary>Por cada componente sustituido en la nave (motor, tanque, instrumento, relevo).</summary>
-        public const float TarifaInstalacionMUSD = 3f;
+        public static float TarifaInstalacionMUSD => ConfiguracionJuego.Actual.tarifas.instalacionMUSD;   // 3 por defecto
         /// <summary>Lanzamiento de la tripulación en la lanzadera L-4 (cápsula, lanzamiento y servicio de plataforma).
         /// Incluye la L-4 de siempre (sin bodega, sin tanque, sin refuerzos); las opciones se cobran aparte.</summary>
-        public const float TarifaLanzamientoTripulacionMUSD = 18f;
-        public const float CosteKitMUSD = 1.5f;
-        public const float CosteSuministroMUSD = 1f;
+        public static float TarifaLanzamientoTripulacionMUSD => ConfiguracionJuego.Actual.tarifas.lanzamientoTripulacionMUSD;   // 18 por defecto
+        public static float CosteKitMUSD => ConfiguracionJuego.Actual.tarifas.kitMUSD;   // 1,5 por defecto
+        public static float CosteSuministroMUSD => ConfiguracionJuego.Actual.tarifas.suministroMUSD;   // 1 por defecto
 
         // ------------------------------------------------------------------ Energía — DEMOSTRACIÓN
         public const float BateriaWh = 12000f;
@@ -134,8 +134,8 @@ namespace PrototipoMision
         public const int KitsABordo = 1;
         /// <summary>Segundos de vuelo que cubre cada unidad de suministros en condiciones normales.</summary>
         public const float SegundosPorSuministro = 1200f;
-        public const int MaximoSuministrosExtra = 4;
-        public const int MaximoKitsExtra = 3;
+        public static int MaximoSuministrosExtra => ConfiguracionJuego.Actual.tarifas.maximoSuministrosExtra;   // 4 por defecto
+        public static int MaximoKitsExtra => ConfiguracionJuego.Actual.tarifas.maximoKitsExtra;   // 3 por defecto
 
         // ------------------------------------------------------------------ Daño — DEMOSTRACIÓN
         public const float RadioNaveM = 32f;
@@ -157,7 +157,14 @@ namespace PrototipoMision
 
         // ------------------------------------------------------------------ Opciones EM-4X (estructura de CatalogoNave)
 
+        /// <summary>Motores de la EM-4X: los de ConfiguracionJuego (opciones.motoresEM4X) si hay; si no, los del código.</summary>
         public static List<OpcionMotorNave> Motores(CatalogoNave cat)
+        {
+            List<OpcionMotorNave> o = ConfiguracionJuego.Actual.opciones.motoresEM4X;
+            return o != null && o.Count > 0 ? ConfiguracionJuego.Copia(o) : MotoresPorDefecto(cat);
+        }
+
+        public static List<OpcionMotorNave> MotoresPorDefecto(CatalogoNave cat)
         {
             OpcionMotorNave c0 = cat != null ? cat.Motor(0) : null, c1 = cat != null ? cat.Motor(1) : null;
             return new List<OpcionMotorNave>
@@ -184,7 +191,14 @@ namespace PrototipoMision
             };
         }
 
+        /// <summary>Tanques de la EM-4X: los de ConfiguracionJuego (opciones.tanquesEM4X) si hay; si no, los del código.</summary>
         public static List<OpcionTanqueNave> Tanques(CatalogoNave cat)
+        {
+            List<OpcionTanqueNave> o = ConfiguracionJuego.Actual.opciones.tanquesEM4X;
+            return o != null && o.Count > 0 ? ConfiguracionJuego.Copia(o) : TanquesPorDefecto(cat);
+        }
+
+        public static List<OpcionTanqueNave> TanquesPorDefecto(CatalogoNave cat)
         {
             OpcionTanqueNave c0 = cat != null ? cat.Tanque(0) : null, c1 = cat != null ? cat.Tanque(1) : null;
             return new List<OpcionTanqueNave>
@@ -484,6 +498,7 @@ namespace PrototipoMision
     }
 
     /// <summary>Definición de una misión del MVP (solo textos y parámetros; la lógica está en EstadoExpedicion).</summary>
+    [Serializable]
     public class DefinicionMisionMVP
     {
         public int id;
@@ -496,8 +511,19 @@ namespace PrototipoMision
         public string objetivoInicial;     // id del cuerpo que se selecciona al empezar
         public List<string> pasos = new List<string>();
 
+        /// <summary>Las misiones: las de ConfiguracionJuego (misiones.lista) si hay; si no, las tres del código.</summary>
         public static List<DefinicionMisionMVP> Todas()
         {
+            List<DefinicionMisionMVP> l = ConfiguracionJuego.Actual.misiones.lista;
+            return l != null && l.Count > 0 ? ConfiguracionJuego.Copia(l) : PorDefecto();
+        }
+
+        /// <summary>Las tres misiones del código. Los números de los pasos salen de CondicionesMision (los mismos que se comprueban).</summary>
+        public static List<DefinicionMisionMVP> PorDefecto()
+        {
+            CondicionesMision c = ConfiguracionJuego.Actual.misiones.condiciones;
+            string salida = $"PILOTAJE: toma el control y aléjate más de {c.salidaBaseM:0} m de la base.";
+            string regreso = $"PILOTAJE: vuelve a la base (menos de {c.regresoDistanciaM:0} m y de {c.regresoVelocidadMS:0.#} m/s respecto a ella) y confirma el regreso.";
             return new List<DefinicionMisionMVP>
             {
                 new DefinicionMisionMVP
@@ -508,11 +534,11 @@ namespace PrototipoMision
                     capturasRequeridas = 3, objetivoInicial = "kora",
                     pasos = new List<string>
                     {
-                        "PILOTAJE: toma el control y aléjate más de 600 m de la base.",
-                        "PILOTAJE: entra en la banda de observación (entre 24 y 28 km del centro de Kora).",
-                        "CIENCIA: captura 3 observaciones. Condiciones: dentro de la banda, proa hacia Kora (±15°) y giro menor de 1°/s.",
+                        salida,
+                        $"PILOTAJE: entra en la banda de observación (entre {c.bandaMinM / 1000f:0.#} y {c.bandaMaxM / 1000f:0.#} km del centro de Kora).",
+                        $"CIENCIA: captura 3 observaciones. Condiciones: dentro de la banda, proa hacia Kora (±{c.proaGrados:0.#}°) y giro menor de {c.giroGradosS:0.#}°/s.",
                         "COMUNICACIONES: transmite las tres capturas a la base.",
-                        "PILOTAJE: vuelve a la base (menos de 400 m y de 2 m/s respecto a ella) y confirma el regreso."
+                        regreso
                     }
                 },
                 new DefinicionMisionMVP
@@ -524,13 +550,13 @@ namespace PrototipoMision
                     capturasRequeridas = 1, objetivoInicial = "k2",
                     pasos = new List<string>
                     {
-                        "PILOTAJE: toma el control y aléjate más de 600 m de la base.",
-                        "PILOTAJE: encuentro con el satélite K-2: a menos de 300 m y de 2 m/s respecto a él.",
+                        salida,
+                        $"PILOTAJE: encuentro con el satélite K-2: a menos de {c.k2DistanciaM:0} m y de {c.k2VelocidadMS:0.#} m/s respecto a él.",
                         "CIENCIA: haz el diagnóstico del satélite (mantén la distancia y la velocidad relativa).",
                         "INGENIERÍA: alimenta el bus de servicio.",
-                        "COMUNICACIONES: envía la orden de reinicio al satélite (sigue a menos de 300 m).",
+                        $"COMUNICACIONES: envía la orden de reinicio al satélite (sigue a menos de {c.k2DistanciaM:0} m).",
                         "COMUNICACIONES: transmite el informe del diagnóstico a la base.",
-                        "PILOTAJE: vuelve a la base (menos de 400 m y de 2 m/s respecto a ella) y confirma el regreso."
+                        regreso
                     }
                 },
                 new DefinicionMisionMVP
@@ -541,13 +567,13 @@ namespace PrototipoMision
                     capturasRequeridas = 2, requiereSonda = true, danoGuionizado = true, objetivoInicial = "tesel",
                     pasos = new List<string>
                     {
-                        "PILOTAJE: toma el control y aléjate más de 600 m de la base.",
-                        "PILOTAJE: llega al punto de observación: entre 3 y 6 km del centro del cúmulo y a menos de 5 m/s respecto a él.",
-                        "CIENCIA: escanea el cúmulo 2 veces. Condiciones: en el punto de observación, proa hacia el cúmulo (±15°) y giro menor de 1°/s.",
-                        "PILOTAJE: acércate al asteroide T-7: a menos de 400 m de su superficie y de 3 m/s respecto a él.",
+                        salida,
+                        $"PILOTAJE: llega al punto de observación: entre {c.cumuloMinM / 1000f:0.#} y {c.cumuloMaxM / 1000f:0.#} km del centro del cúmulo y a menos de {c.cumuloVelocidadMS:0.#} m/s respecto a él.",
+                        $"CIENCIA: escanea el cúmulo 2 veces. Condiciones: en el punto de observación, proa hacia el cúmulo (±{c.proaGrados:0.#}°) y giro menor de {c.giroGradosS:0.#}°/s.",
+                        $"PILOTAJE: acércate al asteroide T-7: a menos de {c.t7SuperficieM:0} m de su superficie y de {c.t7VelocidadMS:0.#} m/s respecto a él.",
                         "CIENCIA: despliega la sonda sobre T-7.",
                         "COMUNICACIONES: transmite los escaneos y los datos de la sonda a la base.",
-                        "PILOTAJE: vuelve a la base (menos de 400 m y de 2 m/s respecto a ella) y confirma el regreso."
+                        regreso
                     }
                 }
             };

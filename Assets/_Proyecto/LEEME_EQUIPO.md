@@ -1096,3 +1096,70 @@ Si no cabe, el motivo aparece en la revisión y en el VC-1, la preparación no s
 - Nuevos: `MVP/DatosTransporteOrbital.cs`, `HangarTerrestre/ModeloComponentes.cs`, `ModeloTransporte.cs`, `ZonaTransporteOrbital.cs`, `EscenarioOrbital.cs`, `GeometriaProvisional.cs`, `SecuenciaEnvioOrbital.cs` y `ArteEM4X/SustitucionEscenario.cs`.
 - Modificados: `BalanceEM4X.cs`, `JuegoMVP.cs`, `HudMVP.cs`, `CargaHangar.cs`, `HangarTerrestre.cs`, `HudHangarTerrestre.cs`, `SecuenciaDespegue.cs`, `ModeloLanzadera.cs`, `IntegracionLanzadera.cs`, `RecursosVisualesEM4X.cs` (tipo Escenario, al final de la lista), `SustitucionVisualEM4X.cs` (ignora las entradas Escenario) y `Editor/CrearEscenaHangarExpedicion.cs`.
 
+
+## Secuencias animadas sin cartillas y configuración central (14-11-2026)
+
+**Estado: PENDIENTE de compilar y probar** (pruebas AH). La versión anterior, validada (AG), está guardada en `CopiasSeguridad/Copia_validada_AG_2026-11-14.zip`.
+
+**Qué cambia:** solo las secuencias visuales y su conexión con el recorrido. No cambian:
+- la distribución del hangar, la cubierta, el holograma ni sus consolas;
+- la preparación de carga, el presupuesto ni las tarifas;
+- la configuración de los vehículos;
+- la geometría, el balance ni el vuelo de la EM-4X;
+- las tres misiones.
+
+**VC-1 (sin tripulación):**
+- Salida de C2, integración en el LC-2, cuenta atrás y ascenso.
+- **En el espacio:** separación de la cofia y del lanzador.
+- **Aproximación visible a la EM-4X real.** Las secuencias usan la misma geometría que la expedición (`VistaExpedicion`) y la misma sustitución de arte, sin rótulos ni el bloque antiguo LZ.
+- Punto de espera, alineación y aparcamiento **detrás de la nave**.
+- **Conexión de servicio** desde la viga: es de carga, no un paso de personas.
+- Recepción, retirada, colocación y comprobación de cada pieza por un **pasillo seguro**, con un remolcador guiado:
+  - cuando se cambia el tanque, la etapa se ve en corte;
+  - el relevo se coloca sobre el módulo de Comunicaciones.
+- Manguera de combustible por debajo de la nave y carga por el puerto de suministro.
+- Desconexión y salida del VC-1. Sin envío no hay VC-1.
+
+**L-4 (tripulación):**
+- Lo de siempre: carga, traslado, embarque, compuerta, comprobación, cuenta atrás y ascenso.
+- Separación de los refuerzos (si los lleva) y, en el espacio, de la etapa principal.
+- Aproximación, alineación bajo el puerto del Mando y atraque con el morro.
+- Transferencias (indicador).
+- Apertura de la escotilla y subida en primera persona al Mando.
+
+**A bordo (ExpedicionMVP, `EntradaABordo`):**
+- La cámara sigue desde la misma posición: se cierra el acceso de la lanzadera, avanza al nodo central y se gira hasta el punto de inicio de siempre.
+- Al terminar, el control pasa al personaje. No es un personaje nuevo: es una cámara.
+- Mientras dura, la misión no corre.
+- **Omitir** con Espacio o Intro (después de verla una vez) deja el mismo estado.
+
+**Textos:** solo rótulos de una línea, cuenta atrás, indicadores, la lista de comprobación y la ayuda para omitir. Las claves están en `ConfiguracionJuego → textos`.
+
+**Configuración central:** `Scripts/MVP/ConfiguracionJuego.cs`. Guía: `Documentacion/ADAPTACION_REQUISITOS.md`.
+- **Sin archivo, todo queda como en AG.**
+- Menús: *Prototipo → Juego → Configuración → 1. Crear*, *2. Comprobar*, *3. Seleccionar* y *4. Copiar misiones*.
+- **Lo que se lee de ahí:**
+  - tarifas y extras;
+  - límites del VC-1;
+  - opciones de motor y tanque de la EM-4X y de la L-4;
+  - condiciones y textos de misión;
+  - proporciones visuales de la L-4 y del LC-2;
+  - secuencias (activar, omitir, velocidad, duraciones);
+  - rótulos, planos de cámara y puntos de servicio y atraque.
+
+**«Tubos» de la L-4:** no se ha cambiado ninguna medida. La lista de piezas candidatas y la pregunta para el mecánico están en `ADAPTACION_REQUISITOS.md`.
+
+**Queda como estaba:** el acceso directo a ExpedicionMVP y el botón «Nueva expedición» de los resultados siguen usando la preparación interna con sus tres tarjetas, porque allí no hay secuencias. Desde el hangar no hay tarjetas.
+
+**Archivos:**
+- Nuevos:
+  - `MVP/ConfiguracionJuego.cs`
+  - `MVP/EntradaABordo.cs`
+  - `Editor/ConfiguracionJuegoEditor.cs`
+  - `Documentacion/ADAPTACION_REQUISITOS.md`
+- Reescritos: `HangarTerrestre/EscenarioOrbital.cs` y `SecuenciaEnvioOrbital.cs`.
+- Modificados:
+  - `SecuenciaDespegue.cs`, `ModeloLanzadera.cs` y `ModeloTransporte.cs`
+  - `BalanceEM4X.cs`, `DatosLanzadera.cs`, `DatosTransporteOrbital.cs`, `EstadoExpedicion.cs` y `SistemaKora.cs` (los mismos valores, leídos de la configuración)
+  - `JuegoMVP.cs` y `HudMVP.cs`
+  - `GUIA_MODELADO_EM4X.md` (fichas D y E) y `PRUEBAS_ACEPTACION.md` (AH)

@@ -70,8 +70,8 @@ namespace PrototipoMision
         public const double RadioOrbitaBaseM = 30000.0;
         public const double RadioOrbitaSateliteM = 31500.0;
         public const double RadioOrbitaCumuloM = 34000.0;
-        public const float BandaObservacionMinM = 24000f;
-        public const float BandaObservacionMaxM = 28000f;
+        public static float BandaObservacionMinM => ConfiguracionJuego.Actual.misiones.condiciones.bandaMinM;   // 24 000 por defecto
+        public static float BandaObservacionMaxM => ConfiguracionJuego.Actual.misiones.condiciones.bandaMaxM;   // 28 000 por defecto
         public const float RadioCumuloM = 2200f;
         public const double PasoSimulacionS = 0.02;
 

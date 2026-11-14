@@ -162,12 +162,15 @@ namespace PrototipoMision
         public Vector3 DireccionA(CuerpoKora c) => (Sistema.Posicion(c, Tiempo) - Vuelo.Posicion).AVector3().normalized;
         public float DesvioProaGrados(CuerpoKora c) => Vector3.Angle(Vuelo.Proa, DireccionA(c));
 
+        /// <summary>Límites y condiciones de las misiones (ConfiguracionJuego → misiones → condiciones).</summary>
+        static CondicionesMision C => ConfiguracionJuego.Actual.misiones.condiciones;
+
         public bool EnBase(out string falta)
         {
             Relativo(cBase, out float d, out float v, out float a);
             falta = "";
-            if (d > 400f) falta = $"estás a {d:0} m de la base (máximo 400 m)";
-            else if (v > 2f) falta = $"vas a {v:0.0} m/s respecto a la base (máximo 2 m/s)";
+            if (d > C.regresoDistanciaM) falta = $"estás a {d:0} m de la base (máximo {C.regresoDistanciaM:0} m)";
+            else if (v > C.regresoVelocidadMS) falta = $"vas a {v:0.0} m/s respecto a la base (máximo {C.regresoVelocidadMS:0.#} m/s)";
             return falta.Length == 0;
         }
 
@@ -203,25 +206,25 @@ namespace PrototipoMision
             {
                 float r = RadioKoraM;
                 if (r < SistemaKora.BandaObservacionMinM || r > SistemaKora.BandaObservacionMaxM)
-                    falta = $"fuera de la banda de observación (estás a {r / 1000f:0.0} km del centro; banda 24–28 km)";
-                else if (DesvioProaGrados(cKora) > 15f) falta = $"la proa se desvía {DesvioProaGrados(cKora):0}° de Kora (máximo 15°)";
-                else if (giro > 1f) falta = $"la nave gira a {giro:0.0}°/s (máximo 1°/s)";
+                    falta = $"fuera de la banda de observación (estás a {r / 1000f:0.0} km del centro; banda {SistemaKora.BandaObservacionMinM / 1000f:0.#}–{SistemaKora.BandaObservacionMaxM / 1000f:0.#} km)";
+                else if (DesvioProaGrados(cKora) > C.proaGrados) falta = $"la proa se desvía {DesvioProaGrados(cKora):0}° de Kora (máximo {C.proaGrados:0.#}°)";
+                else if (giro > C.giroGradosS) falta = $"la nave gira a {giro:0.0}°/s (máximo {C.giroGradosS:0.#}°/s)";
             }
             else if (Mision.id == 1)
             {
                 Relativo(cK2, out float d, out float v, out float a);
                 if (DiagnosticoHecho) falta = "el diagnóstico ya está hecho";
-                else if (d > 300f) falta = $"el satélite está a {d:0} m (máximo 300 m)";
-                else if (v > 2f) falta = $"velocidad relativa {v:0.0} m/s (máximo 2 m/s)";
+                else if (d > C.k2DistanciaM) falta = $"el satélite está a {d:0} m (máximo {C.k2DistanciaM:0} m)";
+                else if (v > C.k2VelocidadMS) falta = $"velocidad relativa {v:0.0} m/s (máximo {C.k2VelocidadMS:0.#} m/s)";
             }
             else
             {
                 Relativo(cTesel, out float d, out float v, out float a);
                 if (Capturas >= Mision.capturasRequeridas) falta = "los escaneos del cúmulo ya están hechos";
-                else if (d < 3000f || d > 6000f) falta = $"estás a {d / 1000f:0.0} km del centro del cúmulo (punto de observación: 3–6 km)";
-                else if (v > 5f) falta = $"velocidad relativa al cúmulo {v:0.0} m/s (máximo 5 m/s)";
-                else if (DesvioProaGrados(cTesel) > 15f) falta = $"la proa se desvía {DesvioProaGrados(cTesel):0}° del cúmulo (máximo 15°)";
-                else if (giro > 1f) falta = $"la nave gira a {giro:0.0}°/s (máximo 1°/s)";
+                else if (d < C.cumuloMinM || d > C.cumuloMaxM) falta = $"estás a {d / 1000f:0.0} km del centro del cúmulo (punto de observación: {C.cumuloMinM / 1000f:0.#}–{C.cumuloMaxM / 1000f:0.#} km)";
+                else if (v > C.cumuloVelocidadMS) falta = $"velocidad relativa al cúmulo {v:0.0} m/s (máximo {C.cumuloVelocidadMS:0.#} m/s)";
+                else if (DesvioProaGrados(cTesel) > C.proaGrados) falta = $"la proa se desvía {DesvioProaGrados(cTesel):0}° del cúmulo (máximo {C.proaGrados:0.#}°)";
+                else if (giro > C.giroGradosS) falta = $"la nave gira a {giro:0.0}°/s (máximo {C.giroGradosS:0.#}°/s)";
             }
             if (falta.Length == 0 && DatosMB + Config.instrumento.datosPorEscaneoMB > Config.memoriaMB)
                 falta = $"memoria llena ({DatosMB:0} de {Config.memoriaMB:0} MB): transmite antes desde Comunicaciones";
@@ -250,8 +253,8 @@ namespace PrototipoMision
             {
                 Relativo(cT7, out float d, out float v, out float a);
                 float superficie = d - cT7.radioM;
-                if (superficie > 400f) falta = $"T-7 está a {superficie:0} m (máximo 400 m de su superficie)";
-                else if (v > 3f) falta = $"velocidad relativa a T-7 {v:0.0} m/s (máximo 3 m/s)";
+                if (superficie > C.t7SuperficieM) falta = $"T-7 está a {superficie:0} m (máximo {C.t7SuperficieM:0} m de su superficie)";
+                else if (v > C.t7VelocidadMS) falta = $"velocidad relativa a T-7 {v:0.0} m/s (máximo {C.t7VelocidadMS:0.#} m/s)";
                 else if (BusCiencia != EstadoBus.Alimentado) falta = "el bus de ciencia no está alimentado (Ingeniería)";
             }
             return falta.Length == 0;
@@ -289,7 +292,7 @@ namespace PrototipoMision
             else if (!DiagnosticoHecho) falta = "falta el diagnóstico de Ciencia";
             else if (BusServicio != EstadoBus.Alimentado) falta = "el bus de servicio no está alimentado (Ingeniería)";
             else if (BusComunicaciones != EstadoBus.Alimentado) falta = "el bus de comunicaciones no está alimentado (Ingeniería)";
-            else if (d > 300f) falta = $"el satélite está a {d:0} m (máximo 300 m)";
+            else if (d > C.k2DistanciaM) falta = $"el satélite está a {d:0} m (máximo {C.k2DistanciaM:0} m)";
             return falta.Length == 0;
         }
 
@@ -482,7 +485,7 @@ namespace PrototipoMision
         /// <summary>Confirmación del regreso desde Pilotaje (en la zona de la base).</summary>
         public bool ConfirmarRegreso(out string mensaje)
         {
-            if (Paso == 0 && !RegresoAnticipado) { mensaje = "Aún no has salido de la base: primero toma Pilotaje y aléjate más de 600 m."; return false; }
+            if (Paso == 0 && !RegresoAnticipado) { mensaje = $"Aún no has salido de la base: primero toma Pilotaje y aléjate más de {C.salidaBaseM:0} m."; return false; }
             if (!EnBase(out string falta)) { mensaje = "Aún no se puede confirmar el regreso: " + falta + "."; return false; }
             bool objetivos = Paso >= Mision.pasos.Count - 1;
             if (objetivos && !HayBrechaAbierta)
@@ -729,7 +732,7 @@ namespace PrototipoMision
 
             bool hecho = false;
             int ultimo = Mision.pasos.Count - 1;
-            if (Paso == 0) hecho = PilotajeTomado && dBase > 600f;
+            if (Paso == 0) hecho = PilotajeTomado && dBase > C.salidaBaseM;
             else if (Paso == ultimo) hecho = false;       // el regreso se confirma desde Pilotaje
             else if (Mision.id == 0)
             {
@@ -739,7 +742,7 @@ namespace PrototipoMision
             }
             else if (Mision.id == 1)
             {
-                if (Paso == 1) { Relativo(cK2, out float d, out float v, out float a); hecho = d < 300f && v < 2f; }
+                if (Paso == 1) { Relativo(cK2, out float d, out float v, out float a); hecho = d < C.k2DistanciaM && v < C.k2VelocidadMS; }
                 else if (Paso == 2) hecho = DiagnosticoHecho;
                 else if (Paso == 3) hecho = BusServicio == EstadoBus.Alimentado;
                 else if (Paso == 4) hecho = SateliteReparado;
@@ -747,9 +750,9 @@ namespace PrototipoMision
             }
             else
             {
-                if (Paso == 1) { Relativo(cTesel, out float d, out float v, out float a); hecho = d >= 3000f && d <= 6000f && v < 5f; }
+                if (Paso == 1) { Relativo(cTesel, out float d, out float v, out float a); hecho = d >= C.cumuloMinM && d <= C.cumuloMaxM && v < C.cumuloVelocidadMS; }
                 else if (Paso == 2) hecho = Capturas >= Mision.capturasRequeridas;
-                else if (Paso == 3) { Relativo(cT7, out float d, out float v, out float a); hecho = d - cT7.radioM < 400f && v < 3f; }
+                else if (Paso == 3) { Relativo(cT7, out float d, out float v, out float a); hecho = d - cT7.radioM < C.t7SuperficieM && v < C.t7VelocidadMS; }
                 else if (Paso == 4) hecho = SondaDesplegada;
                 else if (Paso == 5) hecho = DatosMB <= 0.01f && CapturasTransmitidas >= Mision.capturasRequeridas + 1;
             }

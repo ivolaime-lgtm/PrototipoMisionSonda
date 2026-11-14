@@ -79,6 +79,7 @@ namespace PrototipoMision
             switch (juego.FaseActual)
             {
                 case JuegoMVP.Fase.Cargando:
+                    if (juego.EntradaEnCurso) return;       // la entrada a bordo dibuja sus propios rótulos
                     Rect r0 = new Rect(ancho / 2f - 300f, 500f, 600f, 60f);
                     Fondo(r0);
                     GUI.Label(r0, "Construyendo la EM-4X…", sAviso);

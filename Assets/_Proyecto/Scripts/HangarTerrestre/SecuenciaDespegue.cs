@@ -133,6 +133,8 @@ namespace PrototipoMision
         void MontarLanzadera(ConfiguracionLanzadera config, Func<Color, bool, Material> fabrica)
         {
             if (modelo != null) modelo.Destruir();        // tras el ascenso cuelga de «raiz», no del conjunto
+            if (refuerzosSueltos != null) Destroy(refuerzosSueltos.gameObject);
+            refuerzosSueltos = null;
             foreach (Transform viejo in cargaL4) if (viejo != null) Destroy(viejo.gameObject);
             cargaL4.Clear();
             if (conjunto != null) Destroy(conjunto.gameObject);
@@ -144,25 +146,39 @@ namespace PrototipoMision
             modelo = ModeloLanzadera.Construir(conjunto, new Vector3(0f, AlturaPlataformaMovil + 1f, 0f), c, fabrica ?? new Func<Color, bool, Material>(Mat));
             configActual = c;
 
-            // Cabina interior (se ve desde el asiento): paneles con ventana en el techo. Girada para que la compuerta
-            // quede en el lado de la escotilla (−z).
-            cabina = new GameObject("Cabina (interior)").transform;
-            cabina.SetParent(modelo.Capsula, false);
-            cabina.localPosition = new Vector3(0f, 1.5f, 0f);
-            cabina.localRotation = Quaternion.Euler(0f, -90f, 0f);
-            Caja("Suelo de la cabina", cabina, new Vector3(0f, -1.4f, 0f), new Vector3(3.6f, 0.1f, 2.8f), mInterior);
-            Caja("Pared trasera", cabina, new Vector3(0f, 0f, -1.4f), new Vector3(3.6f, 2.8f, 0.1f), mInterior);
-            Caja("Pared delantera", cabina, new Vector3(0f, 0f, 1.4f), new Vector3(3.6f, 2.8f, 0.1f), mInterior);
-            Caja("Pared derecha", cabina, new Vector3(1.8f, 0f, 0f), new Vector3(0.1f, 2.8f, 2.8f), mInterior);
-            Caja("Pared izquierda (marco de la compuerta)", cabina, new Vector3(-1.8f, 0f, -0.95f), new Vector3(0.1f, 2.8f, 0.9f), mInterior);
-            Caja("Pared izquierda (marco de la compuerta)", cabina, new Vector3(-1.8f, 0f, 0.95f), new Vector3(0.1f, 2.8f, 0.9f), mInterior);
-            Caja("Techo (marco)", cabina, new Vector3(0f, 1.4f, -1f), new Vector3(3.6f, 0.1f, 0.8f), mInterior);
-            Caja("Techo (marco)", cabina, new Vector3(0f, 1.4f, 1f), new Vector3(3.6f, 0.1f, 0.8f), mInterior);
-            Caja("Consola", cabina, new Vector3(0f, 0.8f, 1.1f), new Vector3(2.2f, 0.5f, 0.4f), mPantalla);
-            Caja("Asiento", cabina, new Vector3(0f, -0.9f, -0.3f), new Vector3(0.7f, 0.2f, 1.5f), mNaranja);
-            compuerta = Caja("Compuerta", cabina, new Vector3(-1.85f, 0f, -1.2f), new Vector3(0.08f, 2f, 1.1f), mNaranja);
+            cabina = CrearCabina(modelo, out escotillaSuperior, out compuerta);
             cabina.gameObject.SetActive(false);
             modelo.Interior = cabina;
+        }
+
+        Transform escotillaSuperior, refuerzosSueltos;
+
+        /// <summary>
+        /// Cabina interior (se ve desde el asiento): paneles con ventana en el techo y, en el centro del techo, la escotilla
+        /// del puerto de atraque (se abre en órbita). Girada para que la compuerta lateral quede en el lado de la escotilla
+        /// de tierra (−z). La misma cabina se usa en tierra y en la L-4 de órbita.
+        /// </summary>
+        Transform CrearCabina(ModeloLanzadera m, out Transform escotilla, out Transform lateral)
+        {
+            Transform c = new GameObject("Cabina (interior)").transform;
+            c.SetParent(m.Capsula, false);
+            c.localPosition = new Vector3(0f, 1.5f, 0f);
+            c.localRotation = Quaternion.Euler(0f, -90f, 0f);
+            Caja("Suelo de la cabina", c, new Vector3(0f, -1.4f, 0f), new Vector3(3.6f, 0.1f, 2.8f), mInterior);
+            Caja("Pared trasera", c, new Vector3(0f, 0f, -1.4f), new Vector3(3.6f, 2.8f, 0.1f), mInterior);
+            Caja("Pared delantera", c, new Vector3(0f, 0f, 1.4f), new Vector3(3.6f, 2.8f, 0.1f), mInterior);
+            Caja("Pared derecha", c, new Vector3(1.8f, 0f, 0f), new Vector3(0.1f, 2.8f, 2.8f), mInterior);
+            Caja("Pared izquierda (marco de la compuerta)", c, new Vector3(-1.8f, 0f, -0.95f), new Vector3(0.1f, 2.8f, 0.9f), mInterior);
+            Caja("Pared izquierda (marco de la compuerta)", c, new Vector3(-1.8f, 0f, 0.95f), new Vector3(0.1f, 2.8f, 0.9f), mInterior);
+            Caja("Techo (marco)", c, new Vector3(0f, 1.4f, -1f), new Vector3(3.6f, 0.1f, 0.8f), mInterior);
+            Caja("Techo (marco)", c, new Vector3(0f, 1.4f, 1f), new Vector3(3.6f, 0.1f, 0.8f), mInterior);
+            Caja("Consola", c, new Vector3(0f, 0.8f, 1.1f), new Vector3(2.2f, 0.5f, 0.4f), mPantalla);
+            Caja("Asiento", c, new Vector3(0f, -0.9f, -0.3f), new Vector3(0.7f, 0.2f, 1.5f), mNaranja);
+            lateral = Caja("Compuerta", c, new Vector3(-1.85f, 0f, -1.2f), new Vector3(0.08f, 2f, 1.1f), mNaranja);
+            escotilla = Caja("Escotilla superior (puerto de atraque)", c, new Vector3(0f, 1.42f, 0f), new Vector3(1.2f, 0.06f, 1.2f), mNaranja);
+            SustitucionEscenario.Punto(c, "L4/Cabina");
+            SustitucionEscenario.Aplicar(c);
+            return c;
         }
 
         static AudioClip Tono(string nombre, float hz, float s, float ruido)
@@ -217,13 +233,13 @@ namespace PrototipoMision
         {
             titulo = "EMBARQUE CONFIRMADO"; grande = ""; progreso = "";
             for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / 0.5f) yield return null;
-            if (HayEnvio)
+            if (HayEnvio && Cfg.mostrarEnvioVC1)
             {
                 segmento = Segmento.Envio;
                 yield return EjecutarEnvio();
                 vistaEnvio = true;
             }
-            yield return EjecutarTripulacion();
+            if (Cfg.mostrarTripulacionL4) yield return EjecutarTripulacion();
             Terminar();
         }
 
@@ -235,7 +251,7 @@ namespace PrototipoMision
             cam.transform.SetParent(null, true);          // antes de rehacer la lanzadera (la cámara pudo quedar en la cabina)
             MontarLanzadera(preparacion.lanzadera, fabricaMat);
             fundido = 1f; lineasVisibles = 0;
-            titulo = ""; grande = ""; progreso = "TRIPULACIÓN · L-4";
+            titulo = ""; grande = ""; progreso = "TRIPULACIÓN · " + DatosLanzadera.Resumen(ConfigActual());
             conjunto.localPosition = SalidaEdificio;
             cam.backgroundColor = cieloTierra;
             Dentro(false);
@@ -249,37 +265,37 @@ namespace PrototipoMision
             yield return CargaL4();
 
             // 1 · Traslado: la lanzadera montada sale del edificio de integración hacia la plataforma (no es la plataforma)
-            titulo = "TRASLADO A LA PLATAFORMA · L-4 montada: " + DatosLanzadera.Resumen(ConfigActual());
-            Vector3 punto = Lugar + new Vector3(55f, 14f, 40f);
-            for (float s = 0f; s < 1f; s += Time.deltaTime / 4f)
+            SecuenciasConfig q = Cfg;
+            titulo = T("l4.traslado");
+            for (float s = 0f; s < 1f; s += Time.deltaTime / D(q.l4Traslado))
             {
                 fundido = Mathf.Max(0f, 1f - s * 4f);
                 conjunto.localPosition = Vector3.Lerp(SalidaEdificio, Vector3.zero, Mathf.SmoothStep(0f, 1f, s));
-                cam.transform.position = punto;
-                cam.transform.LookAt(conjunto.position + Vector3.up * 16f);
+                Encuadre("l4.traslado", conjunto, Lugar);
                 yield return null;
             }
             conjunto.localPosition = Vector3.zero;
             fundido = 0f;
 
             // 2 · Acceso y embarque por el brazo de la torre hasta la escotilla (lado −z de la cápsula)
-            titulo = "ACCESO Y EMBARQUE · lanzadera L-4";
+            titulo = T("l4.embarque");
+            cam.fieldOfView = 70f;
             float hc = modelo.Capsula.position.y + 1.6f;
             brazo.position = new Vector3(Lugar.x, hc - 1.7f, Lugar.z - 5.4f);
             Vector3 a0 = new Vector3(Lugar.x, hc, Lugar.z - 8.2f), a1 = new Vector3(Lugar.x, hc, Lugar.z - 3.2f);
-            for (float s = 0f; s < 1f; s += Time.deltaTime / 2.2f)
+            for (float s = 0f; s < 1f; s += Time.deltaTime / D(q.l4Embarque))
             {
                 cam.transform.SetPositionAndRotation(Vector3.Lerp(a0, a1, Mathf.SmoothStep(0f, 1f, s)), Quaternion.LookRotation(Vector3.forward));
                 yield return null;
             }
 
             // 3 · Asiento y cierre de compuerta
-            titulo = "EN EL ASIENTO · CIERRE DE COMPUERTA";
+            titulo = T("l4.compuerta");
             Dentro(true);                                                          // desde dentro: cabina y, por la ventana, el cielo
             cam.transform.SetParent(cabina, false);
             cam.transform.localPosition = new Vector3(0.3f, -0.4f, -0.3f);
             cam.transform.localRotation = Quaternion.LookRotation(Vector3.left + Vector3.up * 0.1f, Vector3.up);
-            for (float s = 0f; s < 1f; s += Time.deltaTime / 1.8f)
+            for (float s = 0f; s < 1f; s += Time.deltaTime / D(q.l4Compuerta))
             {
                 compuerta.localPosition = new Vector3(-1.85f, 0f, Mathf.Lerp(-1.2f, 0f, Mathf.SmoothStep(0f, 1f, s)));
                 yield return null;
@@ -290,33 +306,34 @@ namespace PrototipoMision
             grande = "";
 
             // 4 · Comprobación de la preparación (la de verdad: ya se verificó antes de empezar)
-            titulo = "COMPROBACIÓN DE LA PREPARACIÓN";
+            titulo = T("l4.comprobacion");
             Quaternion qa = cam.transform.localRotation, qb = Quaternion.LookRotation(Vector3.up, Vector3.forward);
             for (float s = 0f; s < 1f; s += Time.deltaTime / 1f)
             {
                 cam.transform.localRotation = Quaternion.Slerp(qa, qb, Mathf.SmoothStep(0f, 1f, s));
                 yield return null;
             }
-            for (lineasVisibles = 0; lineasVisibles < lineas.Count; lineasVisibles++) yield return Esperar(0.45f);
-            yield return Esperar(0.6f);
+            for (lineasVisibles = 0; lineasVisibles < lineas.Count; lineasVisibles++) yield return Esperar(D(0.45f));
+            yield return Esperar(D(0.6f));
+            lineasVisibles = 0;
 
             // 5 · Cuenta atrás
-            titulo = "CUENTA ATRÁS";
-            for (int n = 5; n >= 1; n--)
+            titulo = T("l4.cuenta");
+            for (int n = Mathf.Max(1, q.l4CuentaAtras); n >= 1; n--)
             {
                 grande = n.ToString();
                 audioFuente.PlayOneShot(pitido);
-                yield return Esperar(1f);
+                yield return Esperar(D(1f));
             }
 
             // 6 · Encendido
-            titulo = "ENCENDIDO";
+            titulo = T("l4.encendido");
             grande = "IGNICIÓN";
             Transform llama = modelo.Llama;
             llama.gameObject.SetActive(true);
             audioFuente.PlayOneShot(motor);
             Vector3 base0 = cam.transform.localPosition;
-            for (float s = 0f; s < 1.8f; s += Time.deltaTime)
+            for (float s = 0f; s < D(1.8f); s += Time.deltaTime)
             {
                 cam.transform.localPosition = base0 + UnityEngine.Random.insideUnitSphere * 0.03f;
                 llama.localScale = new Vector3(3f, 5f + Mathf.Sin(Time.time * 40f) * 0.7f, 3f);
@@ -325,43 +342,63 @@ namespace PrototipoMision
             grande = "";
 
             // 7 · Ascenso: vista desde fuera y vuelta al asiento (la plataforma móvil se queda en tierra)
-            titulo = "ASCENSO";
+            titulo = T("l4.ascenso");
             Dentro(false);
             cam.transform.SetParent(null, true);
             modelo.Raiz.SetParent(raiz, true);
             Vector3 inicio = modelo.Raiz.localPosition;
-            Vector3 vista0 = Lugar + new Vector3(60f, 4f, -90f);
-            float subida = 0f;
-            for (float s = 0f; s < 4.5f; s += Time.deltaTime)
+            float subida = 0f, durAsc = D(q.l4Ascenso);
+            Transform refuerzos;
+            modelo.Piezas.TryGetValue(PiezaLanzadera.Refuerzos, out refuerzos);
+            bool sueltos = false;
+            Vector3 velRefuerzos = Vector3.zero;
+            for (float s = 0f; s < durAsc; s += Time.deltaTime)
             {
-                subida = 0.5f * 9f * s * s;
+                float u = s / durAsc * 4.5f;                                   // misma subida que antes, escalada al tiempo
+                subida = 0.5f * 9f * u * u;
                 modelo.Raiz.localPosition = inicio + Vector3.up * subida;
                 llama.localScale = new Vector3(3f, 5f + Mathf.Sin(Time.time * 40f) * 0.7f, 3f);
-                cam.transform.position = vista0;
-                cam.transform.LookAt(modelo.Raiz.position + Vector3.up * 14f);
-                cam.backgroundColor = Color.Lerp(cieloTierra, cieloEspacio, s / 4.5f * 0.4f);
+                // Separación de los refuerzos (si los hay): se sueltan y caen hacia fuera, sin cruzarse con la etapa
+                if (refuerzos != null && q.mostrarSeparaciones && u > 3.2f)
+                {
+                    if (!sueltos)
+                    {
+                        sueltos = true;
+                        titulo = T("l4.refuerzos");
+                        refuerzos.SetParent(raiz, true);
+                        refuerzosSueltos = refuerzos;
+                        velRefuerzos = Vector3.up * (9f * u * 0.6f);
+                        audioFuente.PlayOneShot(pitido);
+                    }
+                    velRefuerzos += Vector3.down * 9f * Time.deltaTime;
+                    refuerzos.position += velRefuerzos * Time.deltaTime;
+                    foreach (Transform r1 in refuerzos)
+                        r1.localPosition += new Vector3(r1.localPosition.x, 0f, r1.localPosition.z).normalized * 3f * Time.deltaTime;
+                }
+                Encuadre("l4.ascenso", modelo.Raiz, Lugar);
+                cam.backgroundColor = Color.Lerp(cieloTierra, cieloEspacio, s / durAsc * 0.4f);
                 yield return null;
             }
+            if (refuerzos != null && sueltos) refuerzos.gameObject.SetActive(false);
             Dentro(true);
             cam.transform.SetParent(cabina, false);
             cam.transform.localPosition = base0;
             cam.transform.localRotation = qb;
-            titulo = "ASCENSO · rumbo a la órbita de la base y la EM-4X";
+            titulo = T("l4.ascenso");
             float v = 9f * 4.5f;
-            for (float s = 0f; s < 3f; s += Time.deltaTime)
+            for (float s = 0f; s < D(3f); s += Time.deltaTime)
             {
                 subida += v * Time.deltaTime;
                 modelo.Raiz.localPosition = inicio + Vector3.up * subida;
-                cam.backgroundColor = Color.Lerp(cieloTierra, cieloEspacio, 0.4f + s / 3f * 0.6f);
+                cam.backgroundColor = Color.Lerp(cieloTierra, cieloEspacio, 0.4f + s / D(3f) * 0.6f);
                 cam.transform.localPosition = base0 + UnityEngine.Random.insideUnitSphere * 0.015f;
                 yield return null;
             }
 
-            // 8 · Llegada a la órbita de la base y atraque bajo el Mando de la EM-4X
-            for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / 0.6f) yield return null;
+            // 8 · Espacio (separación de la etapa), aproximación, alineación, atraque, apertura y paso a la EM-4X
+            for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / D(0.6f)) yield return null;
             yield return LlegadaL4();
-            for (fundido = 0f; fundido < 1f; fundido += Time.deltaTime / 0.8f) yield return null;
-            fundido = 1f;
+            fundido = 1f;         // la cámara ya está en el puerto del Mando: la expedición sigue desde esa misma posición
         }
 
         ConfiguracionLanzadera configActual;
@@ -374,7 +411,7 @@ namespace PrototipoMision
 
         IEnumerator TripulacionYFin()
         {
-            yield return EjecutarTripulacion();
+            if (Cfg.mostrarTripulacionL4) yield return EjecutarTripulacion();
             Terminar();
         }
 
@@ -406,13 +443,14 @@ namespace PrototipoMision
             if (!Activa || terminada) return;
             Keyboard k = Keyboard.current;
             if (k == null || !(k.spaceKey.wasPressedThisFrame || k.enterKey.wasPressedThisFrame)) return;
-            if (segmento == Segmento.Envio && vistaEnvio)
+            bool libre = Cfg.omitirDesdeLaPrimeraVez;
+            if (segmento == Segmento.Envio && (vistaEnvio || libre))
             {
                 // Omitir el envío: solo se salta su representación; se sigue con la tripulación (mismo estado final)
                 StopAllCoroutines();
                 StartCoroutine(TripulacionYFin());
             }
-            else if (segmento == Segmento.Tripulacion && vista) Terminar();
+            else if (segmento == Segmento.Tripulacion && (vista || libre)) Terminar();
         }
 
         void OnGUI()
@@ -447,9 +485,9 @@ namespace PrototipoMision
                 for (int i = 0; i < lineasVisibles && i < lineas.Count; i++)
                     GUI.Label(new Rect(r.x + 16f, r.y + 14f + i * 34f, r.width - 32f, 34f), "<color=#59CC73>[OK]</color> " + lineas[i], sTexto);
             }
-            bool omitible = segmento == Segmento.Envio ? vistaEnvio : vista;
-            string que = segmento == Segmento.Envio ? "Representación simplificada del envío orbital no tripulado (VC-1)" : "Representación del despegue de la tripulación (L-4, no pilotable)";
-            GUI.Label(new Rect(0f, 1022f, ancho, 46f), que + (omitible ? " · ESPACIO o INTRO: omitir esta parte" : " · se podrá omitir las próximas veces"), sPista);
+            bool omitible = (segmento == Segmento.Envio ? vistaEnvio : vista) || Cfg.omitirDesdeLaPrimeraVez;
+            string que = segmento == Segmento.Envio ? "VC-1 · envío orbital sin tripulación (representación)" : "L-4 · tripulación (representación, no pilotable)";
+            GUI.Label(new Rect(0f, 1022f, ancho, 46f), que + " · " + (omitible ? T("omitir") : T("omitir.luego")), sPista);
             if (fundido > 0f)
             {
                 GUI.color = new Color(0f, 0f, 0f, Mathf.Clamp01(fundido));

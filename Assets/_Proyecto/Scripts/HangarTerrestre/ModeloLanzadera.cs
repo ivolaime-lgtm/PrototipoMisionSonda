@@ -14,7 +14,10 @@ namespace PrototipoMision
     /// </summary>
     public class ModeloLanzadera
     {
-        public const float Diametro = 5f, AlturaEtapa = 18f;
+        /// <summary>Proporciones VISUALES (ConfiguracionJuego → lanzadera). Por defecto: Ø 5 m, etapa de 18 m.</summary>
+        static ProporcionesL4 P => ConfiguracionJuego.Actual.lanzadera;
+        public static float Diametro => P.diametro;
+        public static float AlturaEtapa => P.alturaEtapa;
 
         public Transform Raiz { get; private set; }
         /// <summary>Punto de anclaje en el suelo de la cápsula (para la cabina interior de la secuencia de despegue).</summary>
@@ -27,6 +30,10 @@ namespace PrototipoMision
         public readonly List<Renderer> Exterior = new List<Renderer>();
         public Transform Llama { get; private set; }
         public float AlturaTotal { get; private set; }
+        /// <summary>Altura (local) de la cara del puerto de atraque, en el morro de la cápsula.</summary>
+        public float Morro { get; private set; }
+        /// <summary>Tapa del puerto de atraque del morro (pieza aparte para el arte).</summary>
+        public Transform TapaAtraque { get; private set; }
 
         readonly Func<Color, bool, Material> mat;
         Material mCasco, mOscuro, mNaranja, mGris, mFuego, mVentana;
@@ -95,8 +102,8 @@ namespace PrototipoMision
             foreach (Renderer r in t.GetComponentsInChildren<Renderer>()) r.sharedMaterial = m;
         }
 
-        public static float AlturaTanque(int i) => i == 0 ? 0f : i == 1 ? 3f : 5f;
-        public static float AlturaBodega(int i) => i == 0 ? 0f : i == 1 ? 2.5f : 4f;
+        public static float AlturaTanque(int i) => P.Tanque(i);
+        public static float AlturaBodega(int i) => P.Bodega(i);
 
         void Montar(Transform padre, Vector3 posLocal, ConfiguracionLanzadera c, PiezaLanzadera? resaltar, Material mResaltado, bool orbital)
         {
@@ -109,7 +116,7 @@ namespace PrototipoMision
             {
                 Transform etapa = SustitucionEscenario.Punto(new GameObject("Etapa principal (pieza)").transform, "L4/EtapaPrincipal");
                 etapa.SetParent(Raiz, false);
-                Cilindro("Toberas", etapa, new Vector3(0f, -0.5f, 0f), 3.2f, 1f, mOscuro);
+                Cilindro("Toberas", etapa, new Vector3(0f, -0.5f, 0f), P.diametroToberas, 1f, mOscuro);
                 Cilindro("Etapa principal", etapa, new Vector3(0f, AlturaEtapa / 2f, 0f), Diametro, AlturaEtapa, mCasco);
                 Cilindro("Franja", etapa, new Vector3(0f, AlturaEtapa - 1f, 0f), Diametro + 0.05f, 0.6f, mOscuro);
             }
@@ -118,8 +125,9 @@ namespace PrototipoMision
             Llama.gameObject.SetActive(false);
 
             // Refuerzos alrededor de la etapa
-            int n = orbital ? 0 : DatosLanzadera.Refuerzos()[c.refuerzos].unidades;
-            AlturaPieza[PiezaLanzadera.Refuerzos] = 7f;
+            List<OpcionLanzadera> lr = DatosLanzadera.Refuerzos();
+            int n = orbital || lr.Count == 0 ? 0 : lr[Mathf.Clamp(c.refuerzos, 0, lr.Count - 1)].unidades;
+            AlturaPieza[PiezaLanzadera.Refuerzos] = P.alturaRefuerzo / 2f;
             if (n > 0)
             {
                 Transform g = new GameObject("Propulsores de refuerzo × " + n).transform;
@@ -127,10 +135,11 @@ namespace PrototipoMision
                 for (int i = 0; i < n; i++)
                 {
                     float ang = (n == 2 ? 90f + 180f * i : 45f + 90f * i) * Mathf.Deg2Rad;
-                    Vector3 p = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * (Diametro / 2f + 1.05f);
-                    Cilindro("Refuerzo", g, p + Vector3.up * 7f, 1.8f, 14f, mCasco);
-                    Cilindro("Morro del refuerzo", g, p + Vector3.up * 14.6f, 1.3f, 1.2f, mNaranja);
-                    Cilindro("Tobera del refuerzo", g, p + Vector3.up * -0.4f, 1.2f, 0.8f, mOscuro);
+                    Vector3 p = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * P.RadioRefuerzos;
+                    float dr = P.diametroRefuerzo, hr = P.alturaRefuerzo;
+                    Cilindro("Refuerzo", g, p + Vector3.up * (hr / 2f), dr, hr, mCasco);
+                    Cilindro("Morro del refuerzo", g, p + Vector3.up * (hr + 0.6f), dr * (1.3f / 1.8f), 1.2f, mNaranja);
+                    Cilindro("Tobera del refuerzo", g, p + Vector3.up * -0.4f, dr * (1.2f / 1.8f), 0.8f, mOscuro);
                 }
                 Piezas[PiezaLanzadera.Refuerzos] = g;
                 SustitucionEscenario.Punto(g, "L4/Refuerzos/" + n);
@@ -175,18 +184,22 @@ namespace PrototipoMision
             // Adaptador, cápsula y torre de escape
             Transform capPieza = SustitucionEscenario.Punto(new GameObject("Cápsula (pieza)").transform, "L4/Capsula");
             capPieza.SetParent(Raiz, false);
-            Cilindro("Adaptador", capPieza, new Vector3(0f, y + 0.5f, 0f), 4.4f, 1f, mOscuro);
+            float dc = P.diametroCapsula, hc = P.alturaCapsula, ht2 = P.alturaTorreEscape;
+            Cilindro("Adaptador", capPieza, new Vector3(0f, y + 0.5f, 0f), dc, 1f, mOscuro);
             y += 1f;
             Capsula = new GameObject("Cápsula (anclaje)").transform;
             Capsula.SetParent(Raiz, false);
             Capsula.localPosition = new Vector3(0f, y, 0f);
-            Cilindro("Cápsula", capPieza, new Vector3(0f, y + 1.6f, 0f), 4.4f, 3.2f, mCasco);
-            Cilindro("Cápsula (hombro)", capPieza, new Vector3(0f, y + 3.6f, 0f), 3.2f, 0.8f, mCasco);
-            Cilindro("Cápsula (morro)", capPieza, new Vector3(0f, y + 4.25f, 0f), 2f, 0.5f, mCasco);
-            Caja("Escotilla", capPieza, new Vector3(0f, y + 1.5f, -2.15f), new Vector3(1.2f, 1.8f, 0.15f), mOscuro);
-            Caja("Ventanas", capPieza, new Vector3(0f, y + 2.6f, 2.15f), new Vector3(1.8f, 0.5f, 0.12f), mVentana);
-            if (!orbital) Cilindro("Torre de escape", capPieza, new Vector3(0f, y + 6f, 0f), 0.5f, 3f, mNaranja);
-            AlturaTotal = orbital ? y + 4.5f : y + 7.5f;
+            Cilindro("Cápsula", capPieza, new Vector3(0f, y + hc / 2f, 0f), dc, hc, mCasco);
+            Cilindro("Cápsula (hombro)", capPieza, new Vector3(0f, y + hc + 0.4f, 0f), dc * (3.2f / 4.4f), 0.8f, mCasco);
+            Cilindro("Cápsula (morro, puerto de atraque)", capPieza, new Vector3(0f, y + hc + 1.05f, 0f), 2f, 0.5f, mCasco);
+            Caja("Escotilla", capPieza, new Vector3(0f, y + 1.5f, -dc / 2f + 0.05f), new Vector3(1.2f, 1.8f, 0.15f), mOscuro);
+            Caja("Ventanas", capPieza, new Vector3(0f, y + hc - 0.6f, dc / 2f - 0.05f), new Vector3(1.8f, 0.5f, 0.12f), mVentana);
+            // Tapa del puerto de atraque (morro), enrasada con su cara superior (no sobresale al atracar)
+            TapaAtraque = Caja("Tapa del puerto de atraque", capPieza, new Vector3(0f, y + hc + 1.28f, 0f), new Vector3(1.1f, 0.05f, 1.1f), mOscuro);
+            if (!orbital) Cilindro("Torre de escape", capPieza, new Vector3(0f, y + hc + 1.3f + ht2 / 2f, 0f), 0.5f, ht2, mNaranja);
+            AlturaTotal = orbital ? y + hc + 1.3f : y + hc + 1.3f + ht2;
+            Morro = y + hc + 1.3f;
 
             if (resaltar.HasValue)
             {

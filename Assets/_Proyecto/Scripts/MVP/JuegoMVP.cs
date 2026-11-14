@@ -208,6 +208,28 @@ namespace PrototipoMision
         void EntrarDesdeHangar()
         {
             PrepararFondo();
+            // Paso animado desde el puerto de atraque del Mando hasta el punto de inicio (continúa la secuencia de la L-4).
+            // Verlo u omitirlo termina en ComenzarABordo: el mismo estado final.
+            if (ConfiguracionJuego.Actual.secuencias.mostrarEntradaABordo)
+            {
+                ModuloNave nc = Expedicion.Definicion.Modulo("NC");
+                entrada = gameObject.AddComponent<EntradaABordo>();
+                entrada.Iniciar(this, nc.AMundo(SalidaLocal), Quaternion.LookRotation(nc.Adelante, nc.Arriba), ComenzarABordo);
+            }
+            else ComenzarABordo();
+        }
+
+        EntradaABordo entrada;
+        /// <summary>La entrada animada está en curso (el HUD no dibuja la pantalla de carga).</summary>
+        public bool EntradaEnCurso => entrada != null && entrada.Activa;
+
+        /// <summary>Estado de inicio a bordo (igual se vea la entrada o se omita): puertas, personaje y misión.</summary>
+        void ComenzarABordo()
+        {
+            entrada = null;
+            foreach (PuertasUnion u in Uniones) if (u != null) u.FijarParaComprobacion(u.Datos.abiertaAlInicio);
+            ModuloNave nc = Expedicion.Definicion.Modulo("NC");
+            Personaje.Recolocar(nc.AMundo(SalidaLocal), Quaternion.LookRotation(nc.Adelante, nc.Arriba));
             IniciarMision();
             Avisar("A bordo de la EM-4X, con la configuración confirmada en el hangar. F2: resumen de lo que subió en cada vehículo (opcional).", 9f);
         }

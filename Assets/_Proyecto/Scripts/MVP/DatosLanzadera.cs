@@ -38,6 +38,7 @@ namespace PrototipoMision
 
     public enum PiezaLanzadera { Bodega, Tanque, Refuerzos }
 
+    [Serializable]
     public class OpcionLanzadera
     {
         public string nombre;
@@ -73,7 +74,14 @@ namespace PrototipoMision
     {
         public const string Nombre = "Lanzadera L-4";
 
-        public static List<OpcionLanzadera> Bodegas() => new List<OpcionLanzadera>
+        /// <summary>Las de ConfiguracionJuego (opciones.bodegasL4) si hay; si no, las del código.</summary>
+        public static List<OpcionLanzadera> Bodegas()
+        {
+            List<OpcionLanzadera> o = ConfiguracionJuego.Actual.opciones.bodegasL4;
+            return o != null && o.Count > 0 ? ConfiguracionJuego.Copia(o) : BodegasPorDefecto();
+        }
+
+        public static List<OpcionLanzadera> BodegasPorDefecto() => new List<OpcionLanzadera>
         {
             new OpcionLanzadera { nombre = "Sin bodega (L-4 de siempre)", queHace = "Solo cápsula: la carga pequeña va en el envío orbital.",
                 consecuencia = "Incluida en la tarifa de lanzamiento.", costeMUSD = 0f, masaKg = 0f, capacidadKg = 0f },
@@ -85,7 +93,14 @@ namespace PrototipoMision
                 costeMUSD = 3f, masaKg = 400f, capacidadKg = 800f }
         };
 
-        public static List<OpcionLanzadera> Tanques() => new List<OpcionLanzadera>
+        /// <summary>Las de ConfiguracionJuego (opciones.tanquesL4) si hay; si no, las del código.</summary>
+        public static List<OpcionLanzadera> Tanques()
+        {
+            List<OpcionLanzadera> o = ConfiguracionJuego.Actual.opciones.tanquesL4;
+            return o != null && o.Count > 0 ? ConfiguracionJuego.Copia(o) : TanquesPorDefecto();
+        }
+
+        public static List<OpcionLanzadera> TanquesPorDefecto() => new List<OpcionLanzadera>
         {
             new OpcionLanzadera { nombre = "Sin tanque de transferencia", queHace = "El combustible para la EM-4X va en el envío orbital.",
                 consecuencia = "Incluido en la tarifa de lanzamiento.", costeMUSD = 0f, masaKg = 0f, capacidadKg = 0f },
@@ -97,7 +112,14 @@ namespace PrototipoMision
                 costeMUSD = 3.5f, masaKg = 800f, capacidadKg = 6000f }
         };
 
-        public static List<OpcionLanzadera> Refuerzos() => new List<OpcionLanzadera>
+        /// <summary>Las de ConfiguracionJuego (opciones.refuerzosL4) si hay; si no, las del código.</summary>
+        public static List<OpcionLanzadera> Refuerzos()
+        {
+            List<OpcionLanzadera> o = ConfiguracionJuego.Actual.opciones.refuerzosL4;
+            return o != null && o.Count > 0 ? ConfiguracionJuego.Copia(o) : RefuerzosPorDefecto();
+        }
+
+        public static List<OpcionLanzadera> RefuerzosPorDefecto() => new List<OpcionLanzadera>
         {
             new OpcionLanzadera { nombre = "Sin refuerzos (L-4 de siempre)", queHace = "Sube la cápsula y hasta 1000 kg extra.",
                 consecuencia = "Incluido en la tarifa de lanzamiento.", costeMUSD = 0f, capacidadKg = 1000f, unidades = 0 },

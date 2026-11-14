@@ -11,7 +11,7 @@ namespace PrototipoMision
     // vehículo propio, distinto de la L-4 y sin tripulación. La tarifa NO cambia: el vehículo, la animación y el
     // lanzamiento no se cobran aparte.
     //
-    // Límites de DEMOSTRACIÓN (reglas de juego, no ingeniería validada), comprobados con lo que va en el envío:
+    // Límites de DEMOSTRACIÓN (reglas de juego, no ingeniería validada; valores en ConfiguracionJuego → transporte):
     //  · Masa útil máxima: 34 000 kg (componentes de la EM-4X + combustible + carga pequeña que no va en la L-4).
     //  · Bodega principal (componentes): Ø 7,2 m × 23 m. Cada componente debe caber en el diámetro y la suma de los largos
     //    (más 0,3 m de separación antes, entre y después de cada pieza) en los 23 m. Con las piezas actuales TODAS caben: el
@@ -58,12 +58,12 @@ namespace PrototipoMision
     {
         public const string Nombre = "VC-1 · transporte orbital no tripulado";
         public const string NombreLanzador = "Lanzador provisional LC-2";
-        public const float MasaMaximaKg = 34000f;
-        public const float DiametroBodegaM = 7.2f;
-        public const float LargoBodegaM = 23f;
+        public static float MasaMaximaKg => ConfiguracionJuego.Actual.transporte.masaMaximaKg;          // 34 000 por defecto
+        public static float DiametroBodegaM => ConfiguracionJuego.Actual.transporte.diametroBodegaM;    // 7,2 por defecto
+        public static float LargoBodegaM => ConfiguracionJuego.Actual.transporte.largoBodegaM;          // 23 por defecto
         /// <summary>Separación antes, entre y después de las piezas de la bodega (la misma que usa ModeloTransporte).</summary>
-        public const float SeparacionM = 0.3f;
-        public const int ModulosCombustibleMax = 12;
+        public static float SeparacionM => ConfiguracionJuego.Actual.transporte.separacionM;            // 0,3 por defecto
+        public static int ModulosCombustibleMax => ConfiguracionJuego.Actual.transporte.modulosCombustibleMax;   // 12 por defecto
 
         /// <summary>Medidas a escala real del motor (provisionales): tobera mayor con más empuje, más larga cuanto más eficiente.</summary>
         public static MedidasTransporte Motor(OpcionMotorNave o) =>

@@ -720,53 +720,155 @@ Preparación común: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Pla
 
 ## AG. Estación A compacta, cubierta abovedada, transporte VC-1 y recorrido visual — 13-11-2026
 
-**Estado: PENDIENTES.** Escrito y revisado por lectura; no compilado ni ejecutado. AE y AF siguen validadas solo para `Copia_validada_AE_AF_2026-11-13.zip`. Abrir: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play. Antes, comprobar que la consola no muestra errores de compilación.
+**Estado: AG1–AG8 SUPERADAS — confirmadas por el usuario el 14-11-2026 (compilado y probado en Unity, con la corrección de `SecuenciaDespegue.cs`) sobre la versión guardada en `CopiasSeguridad/Copia_validada_AG_2026-11-14.zip`.** Los cambios posteriores (sección AH) necesitan pruebas nuevas. Abrir: *Prototipo → Juego → 3. Abrir HangarExpedicion* → Play. Antes, comprobar que la consola no muestra errores de compilación.
 
 ### AG1. Organización y circulación junto al holograma
-- [ ] La estación A se reconoce como una sola: tarima, mesa, consolas MOTOR/TANQUE/INSTRUMENTO delante, A2 al este y 2 al oeste, maquetas detrás y rótulo superior.
-- [ ] E en la consola MOTOR abre el holograma ya en la pestaña MOTOR (igual con TANQUE e INSTRUMENTO); A2 lo abre sin pieza fijada.
-- [ ] Ni las maquetas ni los rótulos tapan el holograma desde las consolas.
-- [ ] Se puede rodear la estación por los dos lados sin chocar.
-- [ ] Las maquetas muestran la pieza elegida con «MAQUETA 1:10» o «1:2» y dónde está la pieza real.
+- [x] La estación A se reconoce como una sola: tarima, mesa, consolas MOTOR/TANQUE/INSTRUMENTO delante, A2 al este y 2 al oeste, maquetas detrás y rótulo superior.
+- [x] E en la consola MOTOR abre el holograma ya en la pestaña MOTOR (igual con TANQUE e INSTRUMENTO); A2 lo abre sin pieza fijada.
+- [x] Ni las maquetas ni los rótulos tapan el holograma desde las consolas.
+- [x] Se puede rodear la estación por los dos lados sin chocar.
+- [x] Las maquetas muestran la pieza elegida con «MAQUETA 1:10» o «1:2» y dónde está la pieza real.
 
 ### AG2. Cubierta sin interferencias
-- [ ] La cubierta del edificio de la L-4 es curva (perfil ovalado visible en los extremos) y conserva arcos, plataformas, pasarelas, grúa y luces.
-- [ ] La lanzadera más alta (bodega grande + tanque de 2 tramos) no toca la cubierta; la animación de la grúa en la consola B no atraviesa la cubierta.
-- [ ] La cámara de la consola B no se sale por la cubierta ni por las paredes.
-- [ ] La puerta de salida (este) se ve y es más ancha y alta que la lanzadera con su plataforma.
+- [x] La cubierta del edificio de la L-4 es curva (perfil ovalado visible en los extremos) y conserva arcos, plataformas, pasarelas, grúa y luces.
+- [x] La lanzadera más alta (bodega grande + tanque de 2 tramos) no toca la cubierta; la animación de la grúa en la consola B no atraviesa la cubierta.
+- [x] La cámara de la consola B no se sale por la cubierta ni por las paredes.
+- [x] La puerta de salida (este) se ve y es más ancha y alta que la lanzadera con su plataforma.
 
 ### AG3. Previsualización, confirmación, cambio y cancelación
-- [ ] Previsualizar en el holograma no crea ninguna pieza en C2 ni cambia el total.
-- [ ] Encargar un motor → su pieza a escala real aparece en el soporte del MOTOR (C2) con «Transporte orbital no tripulado»; el total cambia una sola vez (lo que ya costaba).
-- [ ] E en el soporte → la grúa la lleva a la bodega del VC-1; el lote queda preparado; nada se cobra.
-- [ ] Cambiar a otro motor con la preparación abierta → la pieza anterior desaparece de la bodega, el soporte muestra la nueva y solo el lote del motor queda pendiente.
-- [ ] Volver al motor de serie → el soporte queda «sin encargo», no hay lote ni envío por ese motor.
-- [ ] Cambiar la selección mientras la grúa trabaja → aviso y la pieza no queda marcada como cargada.
-- [ ] Ningún objeto duplicado tras varios cambios (soportes, bodega, maquetas).
+- [x] Previsualizar en el holograma no crea ninguna pieza en C2 ni cambia el total.
+- [x] Encargar un motor → su pieza a escala real aparece en el soporte del MOTOR (C2) con «Transporte orbital no tripulado»; el total cambia una sola vez (lo que ya costaba).
+- [x] E en el soporte → la grúa la lleva a la bodega del VC-1; el lote queda preparado; nada se cobra.
+- [x] Cambiar a otro motor con la preparación abierta → la pieza anterior desaparece de la bodega, el soporte muestra la nueva y solo el lote del motor queda pendiente.
+- [x] Volver al motor de serie → el soporte queda «sin encargo», no hay lote ni envío por ese motor.
+- [x] Cambiar la selección mientras la grúa trabaja → aviso y la pieza no queda marcada como cargada.
+- [x] Ningún objeto duplicado tras varios cambios (soportes, bodega, maquetas).
 
 ### AG4. Destino de cada carga y límites
-- [ ] Cada contenedor y lote dice «L-4: tripulación y carga» o «Transporte orbital no tripulado» según las reglas de la lanzadera.
-- [ ] Los lotes pequeños que van en el VC-1 se entregan con el carro en la zona amarilla de C2 (se cruza el paso del fondo sin engancharse) y aparecen en el anillo del VC-1.
-- [ ] Tanque ampliado + motor de alto empuje + 10 tramos → el VC-1 dice «NO SE PUEDE DESPACHAR» con el motivo (unos 37 200 kg o más, según la carga pequeña, frente a 34 000 kg), la revisión lo marca y no se puede cerrar. Bajando tramos se resuelve.
-- [ ] El total y las tarifas son los mismos que en la versión validada con la misma selección (el VC-1 no añade cobros).
+- [x] Cada contenedor y lote dice «L-4: tripulación y carga» o «Transporte orbital no tripulado» según las reglas de la lanzadera.
+- [x] Los lotes pequeños que van en el VC-1 se entregan con el carro en la zona amarilla de C2 (se cruza el paso del fondo sin engancharse) y aparecen en el anillo del VC-1.
+- [x] Tanque ampliado + motor de alto empuje + 10 tramos → el VC-1 dice «NO SE PUEDE DESPACHAR» con el motivo (unos 37 200 kg o más, según la carga pequeña, frente a 34 000 kg), la revisión lo marca y no se puede cerrar. Bajando tramos se resuelve.
+- [x] El total y las tarifas son los mismos que en la versión validada con la misma selección (el VC-1 no añade cobros).
 
 ### AG5. Lanzamiento no tripulado solo cuando corresponde
-- [ ] Sin componentes, sin combustible en el envío y sin carga pequeña en el envío: el VC-1 dice que no hace falta y al embarcar no aparece su secuencia.
-- [ ] Con envío: al embarcar se ven, en orden, salida de C2 con la bodega abierta, integración en el lanzador (fuera de los edificios), cuenta atrás, lanzamiento, llegada a la zona de servicio y, por cada pieza, recepción → retirada de la de serie (queda en el soporte) → colocación → comprobación; después el combustible y la carga pequeña y «EM-4X PREPARADA».
-- [ ] Las piezas recibidas e instaladas son las confirmadas (mismo tipo y tamaño que en C2).
-- [ ] No embarca ningún astronauta en el VC-1.
+- [x] Sin componentes, sin combustible en el envío y sin carga pequeña en el envío: el VC-1 dice que no hace falta y al embarcar no aparece su secuencia.
+- [x] Con envío: al embarcar se ven, en orden, salida de C2 con la bodega abierta, integración en el lanzador (fuera de los edificios), cuenta atrás, lanzamiento, llegada a la zona de servicio y, por cada pieza, recepción → retirada de la de serie (queda en el soporte) → colocación → comprobación; después el combustible y la carga pequeña y «EM-4X PREPARADA».
+- [x] Las piezas recibidas e instaladas son las confirmadas (mismo tipo y tamaño que en C2).
+- [x] No embarca ningún astronauta en el VC-1.
 
 ### AG6. Tripulación, llegada y omisión
-- [ ] Después del envío (o directamente si no hay): carga de la bodega de la L-4 (si lleva), traslado, embarque, compuerta, comprobación, cuenta atrás, ascenso, llegada y atraque bajo el Mando con la L-4 confirmada.
-- [ ] En ExpedicionMVP se empieza ya a bordo, con control del personaje y sin tarjetas. F2 abre y cierra el resumen.
-- [ ] Ver todo y omitirlo (Espacio/Intro, en partes ya vistas) llegan al mismo estado: misma configuración, recursos, costes y objetivo (comparar la mesa de misión y F2 en ambos casos).
-- [ ] La instalación se ve siempre antes que la llegada de la tripulación.
+- [x] Después del envío (o directamente si no hay): carga de la bodega de la L-4 (si lleva), traslado, embarque, compuerta, comprobación, cuenta atrás, ascenso, llegada y atraque bajo el Mando con la L-4 confirmada.
+- [x] En ExpedicionMVP se empieza ya a bordo, con control del personaje y sin tarjetas. F2 abre y cierra el resumen.
+- [x] Ver todo y omitirlo (Espacio/Intro, en partes ya vistas) llegan al mismo estado: misma configuración, recursos, costes y objetivo (comparar la mesa de misión y F2 en ambos casos).
+- [x] La instalación se ve siempre antes que la llegada de la tripulación.
 
 ### AG7. Nueva expedición y ejecutable
-- [ ] Volver al hangar: soportes y VC-1 vacíos, lotes por preparar, ningún objeto de la expedición anterior; las selecciones se conservan.
-- [ ] *Juego → 6* genera el ejecutable y el recorrido completo (con y sin envío) funciona en él.
-- [ ] Acceso directo a ExpedicionMVP (sin hangar) sigue funcionando con su propia preparación y sus tarjetas.
+- [x] Volver al hangar: soportes y VC-1 vacíos, lotes por preparar, ningún objeto de la expedición anterior; las selecciones se conservan.
+- [x] *Juego → 6* genera el ejecutable y el recorrido completo (con y sin envío) funciona en él.
+- [x] Acceso directo a ExpedicionMVP (sin hangar) sigue funcionando con su propia preparación y sus tarjetas.
 
 ### AG8. Sustitución de modelos
-- [ ] *Arte y pruebas → 5* conecta la tabla a HangarExpedicion sin otros cambios.
-- [ ] Con una entrada «Escenario» de prueba (p. ej. `A/MesaHolograma` o `VC1/Bodega` con un cubo), el modelo sustituye al bloque, las interacciones y la grúa siguen funcionando y la consola no da avisos en ExpedicionMVP.
+- [x] *Arte y pruebas → 5* conecta la tabla a HangarExpedicion sin otros cambios.
+- [x] Con una entrada «Escenario» de prueba (p. ej. `A/MesaHolograma` o `VC1/Bodega` con un cubo), el modelo sustituye al bloque, las interacciones y la grúa siguen funcionando y la consola no da avisos en ExpedicionMVP.
+
+## AH. Secuencias animadas sin cartillas y configuración central — 14-11-2026
+
+**Estado: PENDIENTE — escrito y revisado solo por lectura; no compilado ni ejecutado.** Copia recuperable de la versión anterior (AG validada): `CopiasSeguridad/Copia_validada_AG_2026-11-14.zip`.
+
+**Antes de empezar:**
+1. Comprueba que la consola no tiene errores de compilación.
+2. Abre *Prototipo → Juego → 3. Abrir HangarExpedicion* y pulsa Play.
+3. Para las pruebas con envío, encarga al menos un motor o un tanque y un instrumento. Deja también algo de carga pequeña o combustible que vaya en el VC-1.
+
+### AH1. Lanzamiento visible del VC-1
+- [ ] La secuencia del VC-1 muestra, en orden:
+  - salida de C2 con la bodega abierta;
+  - integración en el LC-2 y cierre de la cofia;
+  - cuenta atrás, encendido y ascenso.
+- [ ] Sigue un plano en el espacio, con el planeta abajo:
+  - se separa la cofia en dos mitades;
+  - después se separa el VC-1 del lanzador y enciende sus motores.
+- [ ] Sin envío no aparece ningún lanzamiento del VC-1 (ni vacío).
+
+### AH2. Aproximación del VC-1 a la EM-4X
+- [ ] La EM-4X es la de la expedición (mismos módulos, paneles y antena), no bloques genéricos.
+  - No tiene rótulos ni el bloque antiguo de la lanzadera.
+- [ ] El VC-1 llega desde lejos. En al menos un plano se ven los dos vehículos y su escala.
+- [ ] Rótulos breves «PUNTO DE ESPERA» y «ALINEACIÓN»: el VC-1 corrige su giro y se acerca despacio hasta detrás de la nave.
+
+### AH3. Conexión y entrega de carga sin tripulación
+- [ ] Rótulo «CONEXIÓN DE SERVICIO · CARGA (SIN TRIPULACIÓN)». La conexión amarilla sale de la viga hasta el costado del VC-1.
+- [ ] No aparece ninguna persona ni ningún paso de personas.
+- [ ] Cada pieza confirmada pasa por: recepción en la bandeja, retirada de la de serie al bastidor, colocación y «COMPROBACIÓN CORRECTA».
+- [ ] El remolcador amarillo acompaña a cada pieza. Las piezas recibidas e instaladas son las confirmadas.
+- [ ] Al cambiar el tanque, la etapa se ve en corte (armazón) solo mientras dura el cambio.
+- [ ] Combustible: la manguera va por debajo de la nave hasta la etapa y los módulos se vacían.
+- [ ] Carga pequeña: la tapa del puerto de suministro se abre, los contenedores entran y la tapa se cierra.
+- [ ] El VC-1 se desconecta y se va antes de que llegue la L-4.
+
+### AH4. Lanzamiento de la L-4
+- [ ] La secuencia de la L-4 muestra, en orden:
+  - carga de la bodega (si lleva) y traslado;
+  - embarque y cierre de compuerta;
+  - comprobación y cuenta atrás;
+  - encendido y ascenso.
+- [ ] Con refuerzos: se separan durante el ascenso y caen hacia fuera.
+- [ ] En el espacio se separa la etapa principal.
+- [ ] La L-4 que se ve tiene la configuración confirmada (bodega, tanque, refuerzos).
+
+### AH5. Aproximación y atraque de la L-4
+- [ ] La L-4 se acerca desde abajo y desde atrás, con la EM-4X ya preparada (piezas instaladas) y sin el VC-1.
+- [ ] La L-4 se detiene bajo el Mando, se alinea («ALINEACIÓN») y sube hasta tocar el puerto con el morro: rótulo «ATRAQUE».
+- [ ] Ninguna parte de la L-4 atraviesa la bodega (BO), el Mando ni otro módulo.
+- [ ] Transferencias: la carga se indica con un porcentaje (va por dentro). El combustible, si va en la L-4, va por una manguera por debajo de la nave.
+
+### AH6. Entrada animada al interior
+- [ ] Desde el asiento de la cápsula (vista hacia arriba) se abre la escotilla y la cámara sube por el puerto al Mando.
+- [ ] Tras un fundido breve, la expedición empieza **en la misma posición y mirada** (sin pantalla de carga ni tarjeta).
+- [ ] La cámara recorre el resto:
+  - el acceso de la lanzadera se cierra debajo;
+  - avanza por el Mando y el pasadizo hasta el nodo central;
+  - se da la vuelta hasta el punto de inicio de siempre.
+- [ ] Al terminar, el control pasa al personaje: el ratón mira y WASD mueve.
+- [ ] Aparece el aviso de F2 y F2 abre y cierra el resumen.
+
+### AH7. Omitir con el mismo estado final
+- [ ] La segunda vez en la sesión, Espacio o Intro omite cada parte: envío, tripulación y entrada a bordo.
+  - Antes de verla entera, la barra inferior dice que se podrá omitir las próximas veces.
+- [ ] Viendo todo y omitiendo todo se llega a lo mismo:
+  - misma posición y mirada inicial;
+  - puertas iguales (la de la lanzadera cerrada);
+  - mismas piezas, costes, combustible y objetivo.
+  - Compara la mesa de misión y F2.
+- [ ] Omitir no duplica operaciones (no se cobra ni se instala dos veces).
+
+### AH8. Sin cartillas narrativas
+- [ ] En el lanzamiento, la llegada, el atraque y la entrada solo hay:
+  - rótulos de una línea;
+  - cuenta atrás e indicadores;
+  - la lista de comprobación;
+  - la ayuda para omitir.
+- [ ] Ninguna pantalla de texto interrumpe el recorrido.
+- [ ] Las pantallas de configuración, presupuesto, objetivos y resultados siguen igual.
+
+### AH9. Sin objetos que se atraviesen
+- [ ] Mira con atención:
+  - el VC-1 y sus compuertas frente a la bandeja y las piezas;
+  - las piezas en el pasillo seguro (detrás de la nave, por fuera de los paneles solares);
+  - el relevo sobre el módulo de Comunicaciones (no en la antena);
+  - el instrumento en la punta de Ciencia;
+  - las mangueras;
+  - la L-4 atracada.
+- [ ] Anota cualquier cruce con el plano y el momento (la posición se ajusta en `ConfiguracionJuego → puntos`).
+
+### AH10. Ejecutable
+- [ ] *Juego → 6* genera el ejecutable. El recorrido completo funciona en él, con y sin envío, incluida la entrada a bordo.
+
+### AH11. Configuración central (sin cambiar el juego)
+- [ ] **Sin archivo** de configuración, todo coincide con AG: tarifas, límites, opciones, misiones y textos de los pasos.
+- [ ] *Juego → Configuración → 1* crea `Resources/ConfiguracionJuego.asset`. Al repetirlo no lo sobrescribe.
+- [ ] *… → 2* no da errores con los valores iniciales.
+- [ ] **Prueba reversible:**
+  - Pon `secuencias.velocidad = 2`: las secuencias van el doble de rápido.
+  - Vuelve a 1.
+  - Ningún coste ni límite cambia.
